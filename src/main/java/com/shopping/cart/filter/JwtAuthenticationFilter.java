@@ -43,6 +43,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/stripe/webhook")) {
             return true;
         }
+        if ("/api/ai/status".equals(path) || "/api/ai/bundles".equals(path)) {
+            return true;
+        }
         return false;
     }
 

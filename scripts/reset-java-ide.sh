@@ -11,7 +11,7 @@ echo "Looking for Cursor Java cache for: $PROJECT_PATH (or $WORKSPACE_ROOT)"
 
 found=0
 for ws in "$CACHE_ROOT"/*/workspace.json; do
-  if grep -Eq "pixel_tech_backend|pixel-tech|Pixel-Tech" "$ws" 2>/dev/null; then
+  if grep -Eq "pixel_tech_backend|Pixel Tech/backend|pixel-tech|Pixel-Tech" "$ws" 2>/dev/null; then
     dir=$(dirname "$ws")
     jdt="$dir/redhat.java/jdt_ws"
     if [ -d "$jdt" ]; then

@@ -3,11 +3,13 @@ package com.shopping.cart.config;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -30,12 +32,22 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldErrors().stream()
-                .findFirst()
-                .map(err -> err.getField() + " " + err.getDefaultMessage())
-                .orElse("Validation failed");
-        return ResponseEntity.badRequest().body(Map.of("message", message));
+    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        for (FieldError err : ex.getBindingResult().getFieldErrors()) {
+            errors.putIfAbsent(err.getField(), fieldMessage(err));
+        }
+        String message = errors.values().stream().findFirst().orElse("Validation failed");
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("message", message);
+        body.put("errors", errors);
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    /** Custom messages are full sentences; Spring defaults ("must not be blank") need the field name. */
+    private static String fieldMessage(FieldError err) {
+        String msg = err.getDefaultMessage() == null ? "is invalid" : err.getDefaultMessage();
+        return Character.isUpperCase(msg.charAt(0)) ? msg : err.getField() + " " + msg;
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

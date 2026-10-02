@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthApiController {
@@ -40,7 +42,8 @@ public class AuthApiController {
     public ResponseEntity<?> loginAdmin(@Valid @RequestBody LoginAdminRequest loginAdminRequest) {
         AuthResponse authResponse = userService.loginAdmin(loginAdminRequest);
         if (authResponse == null) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(401)
+                    .body(Map.of("message", "Incorrect admin username or password."));
         }
         return ResponseEntity.ok(authResponse);
     }

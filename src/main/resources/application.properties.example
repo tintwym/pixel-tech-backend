@@ -28,10 +28,18 @@ stripe.webhook.secret=${STRIPE_WEBHOOK_SECRET:}
 
 # Pixel Tech frontend (Next.js default port 3000)
 app.frontend.base-url=${APP_FRONTEND_BASE_URL:http://localhost:3000}
+# Admin dashboard origin (CORS)
+app.admin.base-url=${APP_ADMIN_BASE_URL:}
 
 # Optional custom Stripe return URLs (leave unset to use app.frontend.base-url)
 app.checkout.success-url=${APP_CHECKOUT_SUCCESS_URL:}
 app.checkout.cancel-url=${APP_CHECKOUT_CANCEL_URL:}
+
+# AI (Gemini) — /api/ai/** returns 503 when GEMINI_API_KEY is unset
+app.ai.gemini-api-key=${GEMINI_API_KEY:}
+app.ai.model=${GEMINI_MODEL:gemini-3.5-flash}
+app.ai.timeout-seconds=${AI_TIMEOUT_SECONDS:20}
+app.ai.requests-per-minute=${AI_REQUESTS_PER_MINUTE:10}
 
 # Cloudinary — product image uploads
 cloudinary.cloud-name=${CLOUDINARY_CLOUD_NAME:}

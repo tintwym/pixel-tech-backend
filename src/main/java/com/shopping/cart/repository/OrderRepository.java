@@ -20,5 +20,19 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
             + "WHERE o.user = :user ORDER BY o.createdAt DESC")
     List<Order> findByUserWithItems(@Param("user") User user);
 
+    @Query("SELECT DISTINCT o FROM Order o "
+            + "LEFT JOIN FETCH o.user u "
+            + "LEFT JOIN FETCH o.orderItems oi "
+            + "LEFT JOIN FETCH oi.product p "
+            + "ORDER BY o.createdAt DESC")
+    List<Order> findAllWithItems();
+
+    @Query("SELECT DISTINCT o FROM Order o "
+            + "LEFT JOIN FETCH o.user u "
+            + "LEFT JOIN FETCH o.orderItems oi "
+            + "LEFT JOIN FETCH oi.product p "
+            + "WHERE o.id = :id")
+    Optional<Order> findByIdWithItems(@Param("id") UUID id);
+
     Optional<Order> findByStripeCheckoutSessionId(String stripeCheckoutSessionId);
 }

@@ -74,8 +74,9 @@ See **[DEPLOY.md](DEPLOY.md)** for env vars, IAM, and Stripe webhook setup.
 
 | App | Folder | Port |
 |-----|--------|------|
-| Pixel Tech web | `../pixel_tech_web` | 3000 |
-| Pixel Tech API | `pixel_tech_backend` | 8081 |
+| Pixel Tech web | `../web` | 3000 |
+| Pixel Tech admin | `../admin` | 3001 |
+| Pixel Tech API | `backend` | 8081 |
 
 ## Tech stack
 

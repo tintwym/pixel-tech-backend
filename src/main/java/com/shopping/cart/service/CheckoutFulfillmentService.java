@@ -204,6 +204,7 @@ public class CheckoutFulfillmentService {
             order.setTotalPrice(orderTotal);
             // Never fail fulfillment after payment: record shortage for ops instead of rolling back the charge.
             order.setStatus(stockShortage || catalogIssue ? "PAID_STOCK_SHORTAGE" : "COMPLETED");
+            order.setFulfillmentStatus("pending");
             order.setStripeCheckoutSessionId(sessionId);
             order = orderRepository.save(order);
 

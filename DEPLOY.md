@@ -10,7 +10,7 @@ Use this after pushing this repo to GitHub. **Redeploy** when env vars change.
 | `Dockerfile`, `.dockerignore` | API Docker image |
 | `scripts/deploy-cloud-run.sh` | One-command deploy helper |
 
-The Pixel Tech frontend lives in `pixel_tech_web/` — set `APP_FRONTEND_BASE_URL` to your deployed frontend URL.
+The Pixel Tech frontend lives in `../web/` (admin dashboard in `../admin/`) — set `APP_FRONTEND_BASE_URL` to your deployed frontend URL.
 
 Database: **[Neon](https://neon.tech)** PostgreSQL (external — not hosted on Cloud Run).
 
@@ -28,7 +28,7 @@ gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregi
 
 ## Deploy API to Cloud Run
 
-From the **repo root** (`pixel_tech_backend/`):
+From the **repo root** (`backend/`):
 
 ```bash
 export GCP_PROJECT_ID=your-gcp-project-id

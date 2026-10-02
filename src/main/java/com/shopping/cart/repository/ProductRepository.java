@@ -2,6 +2,7 @@ package com.shopping.cart.repository;
 
 import com.shopping.cart.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -27,4 +28,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     Optional<Product> findByStripeProductId(String stripeProductId);
 
     Optional<Product> findByNameIgnoreCase(String name);
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE Product p SET p.stock = p.stock + :amount WHERE p.id = :id AND p.isDeleted = false")
+    int addStock(@Param("id") UUID id, @Param("amount") int amount);
 }
