@@ -3,7 +3,7 @@ set -euo pipefail
 
 PROJECT_ID="${GCP_PROJECT_ID:-$(gcloud config get-value project 2>/dev/null)}"
 REGION="${GCP_REGION:-asia-southeast1}"
-SERVICE="${CLOUD_RUN_SERVICE:-shopping-cart-backend}"
+SERVICE="${CLOUD_RUN_SERVICE:-pixel-tech-api}"
 
 if [[ -z "$PROJECT_ID" || "$PROJECT_ID" == "(unset)" ]]; then
   echo "ERROR: Set GCP_PROJECT_ID or run: gcloud config set project YOUR_PROJECT_ID"
