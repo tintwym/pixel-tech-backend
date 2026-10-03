@@ -22,6 +22,7 @@ public class AiRateLimiter {
 
     private final AiProperties properties;
     private final Map<String, Window> windows = new ConcurrentHashMap<>();
+    private Window globalWindow = new Window(0, 0);
 
     public AiRateLimiter(AiProperties properties) {
         this.properties = properties;
@@ -40,6 +41,21 @@ public class AiRateLimiter {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
                     "Too many AI requests. Please wait a minute and try again.");
         }
+        if (!acquireGlobal(now)) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Pixel AI is very busy right now. Please try again in a minute.");
+        }
+    }
+
+    private synchronized boolean acquireGlobal(long now) {
+        if (now > globalWindow.resetAt()) {
+            globalWindow = new Window(now + WINDOW_MS, 0);
+        }
+        if (globalWindow.count() >= properties.getGlobalRequestsPerMinute()) {
+            return false;
+        }
+        globalWindow = new Window(globalWindow.resetAt(), globalWindow.count() + 1);
+        return true;
     }
 
     private static String clientKey(HttpServletRequest request) {

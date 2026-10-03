@@ -15,6 +15,11 @@ public class AiProperties {
     private int timeoutSeconds = 20;
     /** Max AI requests per client (user or IP) per minute. */
     private int requestsPerMinute = 10;
+    /**
+     * Max AI requests per minute across all clients on one instance. Caps model spend even when
+     * callers rotate a spoofed X-Forwarded-For to dodge the per-client limit.
+     */
+    private int globalRequestsPerMinute = 120;
 
     public boolean isEnabled() {
         return geminiApiKey != null && !geminiApiKey.isBlank();

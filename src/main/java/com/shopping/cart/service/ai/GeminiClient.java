@@ -88,6 +88,11 @@ public class GeminiClient {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
                     "The AI service is busy. Please try again in a minute.");
         }
+        if (response.statusCode() == 401 || response.statusCode() == 403) {
+            log.error("Gemini rejected GEMINI_API_KEY (HTTP {}). Create a key at https://aistudio.google.com/apikey "
+                    + "and redeploy. Response: {}", response.statusCode(), truncate(response.body()).replace('\n', ' '));
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, UNAVAILABLE);
+        }
         if (response.statusCode() / 100 != 2) {
             log.warn("Gemini returned HTTP {}: {}", response.statusCode(), truncate(response.body()));
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, UNAVAILABLE);
