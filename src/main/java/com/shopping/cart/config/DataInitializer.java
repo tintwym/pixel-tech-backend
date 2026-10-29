@@ -70,6 +70,28 @@ public class DataInitializer implements ApplicationRunner {
                 "Largest Pro display, advanced camera stack, and all-day battery. Latest Apple flagship for creators and power users.",
                 "5899000.00", 12,
                 "https://images.unsplash.com/photo-1759820940611-facb87e629d8?auto=format&fit=crop&w=600&q=80");
+        seedProduct("iPhone 18 Pro Max — 256GB",
+                "Next-gen Pro Max with advanced camera system, larger Super Retina XDR display, and all-day battery. Flagship titanium design.",
+                "6499000.00", 10,
+                List.of(
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240448/pixel-tech/products/iphone-18-pro-model-unselect-gallery-1-202609-680eee70-16a6-4f59-9f14-751af72ab9c6.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240449/pixel-tech/products/iphone-18-pro-model-unselect-gallery-2-202609-b56353a7-a1bf-4c7b-9db2-a2c9c2a0d241.jpg"
+                ));
+        seedProduct("iPhone Duo — 256GB",
+                "Book-style foldable iPhone with dual finishes (Starwhite / Nightsky), expansive inner display, cover screen, and dual-camera system.",
+                "7999000.00", 8,
+                List.of(
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240450/pixel-tech/products/iphone-duo-finish-unselect-gallery-2-202609-a5d00f92-2dee-49fb-8a88-01bdd19bd854.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240450/pixel-tech/products/iphone-duo-finish-select-202609-starwhite-44c1b38b-d407-4431-b9b9-a96da108fa84.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240451/pixel-tech/products/iphone-duo-finish-select-202609-starwhite_AV1-10ede2ff-c9b3-4bb4-948a-456fb51800d2.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240452/pixel-tech/products/iphone-duo-finish-select-202609-starwhite_AV2-dbf6ac56-1195-49ac-81f3-55eabf22145d.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240452/pixel-tech/products/iphone-duo-finish-select-202609-starwhite_AV3-599910c3-3c7a-4ef3-bd9a-14e4dc3e3b1a.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240453/pixel-tech/products/iphone-duo-finish-select-202609-starwhite_AV4_GEO_-85ed6898-a0c7-486e-a4e0-eccafb185100.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240454/pixel-tech/products/iphone-duo-finish-select-202609-nightsky-78efc62a-d958-479d-9c04-dcb30dba60e6.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240454/pixel-tech/products/iphone-duo-finish-select-202609-nightsky_AV2-695dfe65-9705-4322-8873-64c3f3ab759f.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240455/pixel-tech/products/iphone-duo-finish-select-202609-nightsky_AV3-668fd0e7-8ade-43bc-bf34-68a38b1d1ce4.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793240456/pixel-tech/products/iphone-duo-finish-select-202609-nightsky_AV4_GEO_S-779dc215-a70c-4bdb-8d37-cd078c00d00f.jpg"
+                ));
         seedProduct("Samsung Galaxy S25 Ultra — 256GB",
                 "Dynamic AMOLED 2X, S Pen, and pro-grade zoom cameras. Android flagship with DeX and long battery life.",
                 "4599000.00", 16,
@@ -136,6 +158,11 @@ public class DataInitializer implements ApplicationRunner {
 
     private void seedProduct(
             String name, String description, String price, int stock, String imageUrl) {
+        seedProduct(name, description, price, stock, List.of(imageUrl));
+    }
+
+    private void seedProduct(
+            String name, String description, String price, int stock, List<String> imageUrls) {
         var existing = productRepository.findByNameIgnoreCase(name);
         if (existing.isPresent()) {
             Product product = existing.get();
@@ -143,38 +170,41 @@ public class DataInitializer implements ApplicationRunner {
             product.setPrice(new BigDecimal(price));
             product.setStock(stock);
             product.setDeleted(false);
-            upsertPrimaryImage(product, imageUrl);
+            replaceImages(product, imageUrls);
             productRepository.save(product);
             return;
         }
-        saveProduct(name, description, price, stock, imageUrl);
+        saveProduct(name, description, price, stock, imageUrls);
     }
 
-    private void upsertPrimaryImage(Product product, String imageUrl) {
+    private void replaceImages(Product product, List<String> imageUrls) {
         List<ProductImage> images = product.getImages();
-        if (images == null || images.isEmpty()) {
+        if (images == null) {
+            images = new ArrayList<>();
+            product.setImages(images);
+        } else {
+            images.clear();
+        }
+        for (String imageUrl : imageUrls) {
             ProductImage image = new ProductImage(imageUrl, product.getName());
             image.setProduct(product);
-            List<ProductImage> next = new ArrayList<>();
-            next.add(image);
-            product.setImages(next);
-            return;
+            images.add(image);
         }
-        images.get(0).setPath(imageUrl);
-        images.get(0).setAltText(product.getName());
     }
 
-    private void saveProduct(String name, String description, String price, int stock, String imagePath) {
+    private void saveProduct(String name, String description, String price, int stock, List<String> imageUrls) {
         Product product = new Product();
         product.setName(name);
         product.setDescription(description);
         product.setPrice(new BigDecimal(price));
         product.setStock(stock);
 
-        ProductImage image = new ProductImage(imagePath, name);
-        image.setProduct(product);
         List<ProductImage> images = new ArrayList<>();
-        images.add(image);
+        for (String imageUrl : imageUrls) {
+            ProductImage image = new ProductImage(imageUrl, name);
+            image.setProduct(product);
+            images.add(image);
+        }
         product.setImages(images);
 
         productRepository.save(product);
