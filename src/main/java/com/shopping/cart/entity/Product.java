@@ -35,6 +35,7 @@ public class Product extends BaseEntity {
     // One-to-Many relationship with ProductImage (@BatchSize avoids N+1 when carts/orders skip JOIN FETCH)
     @BatchSize(size = 32)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC NULLS LAST")
     private List<ProductImage> images;
 
     // Default constructor is required by JPA

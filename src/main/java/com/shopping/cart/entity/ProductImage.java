@@ -13,6 +13,10 @@ public class ProductImage extends BaseEntity {
     private String path;
     private String altText;
 
+    /** Gallery position; 0 = primary card image. Null on legacy rows until re-seeded. */
+    @Column(name = "sort_order")
+    private Integer sortOrder;
+
     // Many-to-One relationship with Product
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,5 +30,11 @@ public class ProductImage extends BaseEntity {
     public ProductImage(String path, String altText) {
         this.path = path;
         this.altText = altText;
+    }
+
+    public ProductImage(String path, String altText, int sortOrder) {
+        this.path = path;
+        this.altText = altText;
+        this.sortOrder = Integer.valueOf(sortOrder);
     }
 }

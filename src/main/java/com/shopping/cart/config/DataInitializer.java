@@ -8,11 +8,14 @@ import com.shopping.cart.repository.ProductRepository;
 import com.shopping.cart.repository.RoleRepository;
 import com.shopping.cart.repository.UserRepository;
 import com.shopping.cart.utility.PasswordHashingUtility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -20,9 +23,12 @@ import java.util.List;
 
 @Component
 public class DataInitializer implements ApplicationRunner {
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
+
     private final RoleRepository roleRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final TransactionTemplate transactionTemplate;
 
     @Value("${app.admin.seed-username:}")
     private String adminSeedUsername;
@@ -33,19 +39,26 @@ public class DataInitializer implements ApplicationRunner {
     public DataInitializer(
             RoleRepository roleRepository,
             ProductRepository productRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            PlatformTransactionManager transactionManager) {
         this.roleRepository = roleRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
     @Override
-    @Transactional
     public void run(ApplicationArguments args) {
-        seedRole("User");
-        seedRole("Admin");
+        // Commit each seed step separately so one failure cannot roll back new SKUs
+        // (important with Neon pooler + long startup transactions).
+        runInTransaction(() -> seedRole("User"));
+        runInTransaction(() -> seedRole("Admin"));
         seedSampleProducts();
-        seedAdminUser();
+        runInTransaction(this::seedAdminUser);
+    }
+
+    private void runInTransaction(Runnable action) {
+        transactionTemplate.executeWithoutResult(status -> action.run());
     }
 
     private void seedRole(String name) {
@@ -146,14 +159,16 @@ public class DataInitializer implements ApplicationRunner {
                 "Studio Monitor 27\" 2K",
                 "Portable SSD 1TB"
         );
-        for (String name : legacy) {
-            productRepository.findByNameIgnoreCase(name).ifPresent(product -> {
-                if (!product.isDeleted()) {
-                    product.setDeleted(true);
-                    productRepository.save(product);
-                }
-            });
-        }
+        runInTransaction(() -> {
+            for (String name : legacy) {
+                productRepository.findByNameIgnoreCase(name).ifPresent(product -> {
+                    if (!product.isDeleted()) {
+                        product.setDeleted(true);
+                        productRepository.save(product);
+                    }
+                });
+            }
+        });
     }
 
     private void seedProduct(
@@ -163,18 +178,22 @@ public class DataInitializer implements ApplicationRunner {
 
     private void seedProduct(
             String name, String description, String price, int stock, List<String> imageUrls) {
-        var existing = productRepository.findByNameIgnoreCase(name);
-        if (existing.isPresent()) {
-            Product product = existing.get();
-            product.setDescription(description);
-            product.setPrice(new BigDecimal(price));
-            product.setStock(stock);
-            product.setDeleted(false);
-            replaceImages(product, imageUrls);
-            productRepository.save(product);
-            return;
-        }
-        saveProduct(name, description, price, stock, imageUrls);
+        runInTransaction(() -> {
+            var existing = productRepository.findByNameIgnoreCase(name);
+            if (existing.isPresent()) {
+                Product product = existing.get();
+                product.setDescription(description);
+                product.setPrice(new BigDecimal(price));
+                product.setStock(stock);
+                product.setDeleted(false);
+                replaceImages(product, imageUrls);
+                productRepository.saveAndFlush(product);
+                log.info("Seeded product (update): {} with {} image(s)", name, imageUrls.size());
+                return;
+            }
+            saveProduct(name, description, price, stock, imageUrls);
+            log.info("Seeded product (create): {} with {} image(s)", name, imageUrls.size());
+        });
     }
 
     private void replaceImages(Product product, List<String> imageUrls) {
@@ -185,8 +204,9 @@ public class DataInitializer implements ApplicationRunner {
         } else {
             images.clear();
         }
-        for (String imageUrl : imageUrls) {
-            ProductImage image = new ProductImage(imageUrl, product.getName());
+        for (int i = 0; i < imageUrls.size(); i++) {
+            ProductImage image = new ProductImage(imageUrls.get(i), product.getName());
+            image.setSortOrder(i);
             image.setProduct(product);
             images.add(image);
         }
@@ -200,14 +220,15 @@ public class DataInitializer implements ApplicationRunner {
         product.setStock(stock);
 
         List<ProductImage> images = new ArrayList<>();
-        for (String imageUrl : imageUrls) {
-            ProductImage image = new ProductImage(imageUrl, name);
+        for (int i = 0; i < imageUrls.size(); i++) {
+            ProductImage image = new ProductImage(imageUrls.get(i), name);
+            image.setSortOrder(i);
             image.setProduct(product);
             images.add(image);
         }
         product.setImages(images);
 
-        productRepository.save(product);
+        productRepository.saveAndFlush(product);
     }
 
     private void seedAdminUser() {

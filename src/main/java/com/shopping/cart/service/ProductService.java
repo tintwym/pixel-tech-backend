@@ -72,6 +72,7 @@ public class ProductService implements IProductService {
         product.setStock(addProductRequest.getStock());
 
         List<ProductImage> productImages = new ArrayList<>();
+        int sortOrder = 0;
         for (MultipartFile image : images) {
             if (image != null && !image.isEmpty()) {
                 String imageUrl = cloudinaryImageService.upload(image);
@@ -79,6 +80,7 @@ public class ProductService implements IProductService {
                         ? image.getOriginalFilename()
                         : product.getName();
                 ProductImage productImage = new ProductImage(imageUrl, altText);
+                productImage.setSortOrder(sortOrder++);
                 productImage.setProduct(product);
                 productImages.add(productImage);
             }
@@ -164,6 +166,11 @@ public class ProductService implements IProductService {
 
         if (newImages != null && newImages.length > 0) {
             List<ProductImage> productImages = product.getImages();
+            if (productImages == null) {
+                productImages = new ArrayList<>();
+                product.setImages(productImages);
+            }
+            int sortOrder = productImages.size();
 
             for (MultipartFile newImage : newImages) {
                 if (newImage != null && !newImage.isEmpty()) {
@@ -172,12 +179,11 @@ public class ProductService implements IProductService {
                             ? newImage.getOriginalFilename()
                             : product.getName();
                     ProductImage productImage = new ProductImage(imageUrl, altText);
+                    productImage.setSortOrder(sortOrder++);
                     productImage.setProduct(product);
                     productImages.add(productImage);
                 }
             }
-
-            product.setImages(productImages);
         }
 
         if (priceChanged && product.getStripeProductId() != null && !product.getStripeProductId().isBlank()) {
