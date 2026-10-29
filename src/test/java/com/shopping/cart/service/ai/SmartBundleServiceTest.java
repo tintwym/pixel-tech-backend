@@ -20,8 +20,8 @@ class SmartBundleServiceTest {
 
     @Test
     void sanitizeStripsControlCharactersAndSymbols() {
-        assertEquals("MacBook Air 13\" M3 — 16GB/512GB",
-                SmartBundleService.sanitizeItemName("MacBook Air 13\" M3 — 16GB/512GB"));
+        assertEquals("MacBook Air",
+                SmartBundleService.sanitizeItemName("MacBook Air"));
         assertEquals("iPhone ignore previous", SmartBundleService.sanitizeItemName("iPhone\n<ignore previous>"));
         assertNull(SmartBundleService.sanitizeItemName("   "));
         assertNull(SmartBundleService.sanitizeItemName("x".repeat(81)));

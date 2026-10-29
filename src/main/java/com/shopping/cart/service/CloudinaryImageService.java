@@ -57,7 +57,7 @@ public class CloudinaryImageService {
                     file.getBytes(),
                     ObjectUtils.asMap(
                             "folder", folder,
-                            "public_id", UUID.randomUUID().toString(),
+                            "public_id", buildPublicId(file),
                             "resource_type", "image"));
             Object url = result.get("secure_url");
             if (url == null) {
@@ -71,5 +71,36 @@ public class CloudinaryImageService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to upload image to Cloudinary", e);
         }
+    }
+
+    /**
+     * Keep original filename tokens (e.g. starwhite, nightsky) in the Cloudinary public id
+     * so storefront color galleries can group finishes from the URL.
+     */
+    static String buildPublicId(MultipartFile file) {
+        String original = file.getOriginalFilename();
+        String base = "image";
+        if (original != null && !original.isBlank()) {
+            String name = original;
+            int slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
+            if (slash >= 0) {
+                name = name.substring(slash + 1);
+            }
+            int dot = name.lastIndexOf('.');
+            if (dot > 0) {
+                name = name.substring(0, dot);
+            }
+            String sanitized = name.toLowerCase()
+                    .replaceAll("[^a-z0-9]+", "-")
+                    .replaceAll("^-+|-+$", "");
+            if (sanitized.length() > 120) {
+                sanitized = sanitized.substring(0, 120).replaceAll("-+$", "");
+            }
+            if (!sanitized.isBlank()) {
+                base = sanitized;
+            }
+        }
+        String suffix = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        return base + "-" + suffix;
     }
 }

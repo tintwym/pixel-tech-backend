@@ -71,7 +71,8 @@ public class ProductApiController {
             @RequestParam(required = false) String category,
             @RequestParam BigDecimal price,
             @RequestParam int stock,
-            @RequestParam(value = "images", required = false) MultipartFile[] images) {
+            @RequestParam(value = "images", required = false) MultipartFile[] images,
+            @RequestParam(value = "replaceImages", required = false, defaultValue = "false") boolean replaceImages) {
         userService.requireAdmin(token);
         UpdateProductRequest request = new UpdateProductRequest();
         request.setName(name);
@@ -80,7 +81,11 @@ public class ProductApiController {
         request.setCategory(category);
         request.setPrice(price);
         request.setStock(stock);
-        return productService.update(id, request, images != null ? images : new MultipartFile[0]);
+        return productService.update(
+                id,
+                request,
+                images != null ? images : new MultipartFile[0],
+                replaceImages);
     }
 
     @DeleteMapping("/delete/{id}")

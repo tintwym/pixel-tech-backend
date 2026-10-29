@@ -141,7 +141,7 @@ public class ProductService implements IProductService {
 
     @Override
     @Transactional
-    public Product update(UUID id, UpdateProductRequest updateProductRequest, MultipartFile[] newImages) {
+    public Product update(UUID id, UpdateProductRequest updateProductRequest, MultipartFile[] newImages, boolean replaceImages) {
         Product product = productRepository.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Product not found"));
         if (product.isDeleted()) {
@@ -168,14 +168,20 @@ public class ProductService implements IProductService {
         product.setPrice(newPrice);
         product.setStock(updateProductRequest.getStock());
 
-        if (newImages != null && newImages.length > 0) {
-            List<ProductImage> productImages = product.getImages();
-            if (productImages == null) {
-                productImages = new ArrayList<>();
-                product.setImages(productImages);
-            }
-            int sortOrder = productImages.size();
+        List<ProductImage> productImages = product.getImages();
+        if (productImages == null) {
+            productImages = new ArrayList<>();
+            product.setImages(productImages);
+        }
 
+        boolean hasNewImages = newImages != null && newImages.length > 0;
+        if (replaceImages) {
+            // orphanRemoval=true deletes rows when cleared from the collection
+            productImages.clear();
+        }
+
+        if (hasNewImages) {
+            int sortOrder = productImages.size();
             for (MultipartFile newImage : newImages) {
                 if (newImage != null && !newImage.isEmpty()) {
                     String imageUrl = cloudinaryImageService.upload(newImage);

@@ -12,6 +12,6 @@ public interface IProductService {
     List<Product> getAllProducts();
     Product getProductById(UUID id);
     Product store(AddProductRequest addProductRequest, MultipartFile[] images);
-    Product update(UUID id, UpdateProductRequest updateProductRequest, MultipartFile[] newImages);
+    Product update(UUID id, UpdateProductRequest updateProductRequest, MultipartFile[] newImages, boolean replaceImages);
     void delete(UUID id);
 }
