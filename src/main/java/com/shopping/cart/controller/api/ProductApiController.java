@@ -45,6 +45,8 @@ public class ProductApiController {
             @RequestHeader("Authorization") String token,
             @RequestParam String name,
             @RequestParam String description,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String category,
             @RequestParam BigDecimal price,
             @RequestParam int stock,
             @RequestParam(value = "images", required = false) MultipartFile[] images) {
@@ -52,6 +54,8 @@ public class ProductApiController {
         AddProductRequest request = new AddProductRequest();
         request.setName(name);
         request.setDescription(description);
+        request.setBrand(brand);
+        request.setCategory(category);
         request.setPrice(price);
         request.setStock(stock);
         return productService.store(request, images != null ? images : new MultipartFile[0]);
@@ -63,6 +67,8 @@ public class ProductApiController {
             @PathVariable UUID id,
             @RequestParam String name,
             @RequestParam String description,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String category,
             @RequestParam BigDecimal price,
             @RequestParam int stock,
             @RequestParam(value = "images", required = false) MultipartFile[] images) {
@@ -70,6 +76,8 @@ public class ProductApiController {
         UpdateProductRequest request = new UpdateProductRequest();
         request.setName(name);
         request.setDescription(description);
+        request.setBrand(brand);
+        request.setCategory(category);
         request.setPrice(price);
         request.setStock(stock);
         return productService.update(id, request, images != null ? images : new MultipartFile[0]);

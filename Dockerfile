@@ -9,6 +9,8 @@ COPY .mvn .mvn
 RUN chmod +x mvnw \
     && ./mvnw -B -q dependency:resolve dependency:resolve-plugins -DskipTests
 
+# Cache-bust when source changes must force a fresh Maven package on Cloud Build.
+ARG CACHEBUST=2026-10-29-brand-backfill
 COPY src src
 RUN ./mvnw -B -q -DskipTests package \
     && JAR="$(ls target/pixel_tech_backend-*.jar | grep -v '\.original$' | head -1)" \

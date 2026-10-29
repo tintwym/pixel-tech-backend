@@ -9,6 +9,8 @@ public class ProductMapper {
         Product product = new Product();
         product.setName(addProductRequest.getName());
         product.setDescription(addProductRequest.getDescription());
+        product.setBrand(addProductRequest.getBrand());
+        product.setCategory(addProductRequest.getCategory());
         product.setPrice(addProductRequest.getPrice());
         product.setStock(addProductRequest.getStock());
         return product;
@@ -17,6 +19,8 @@ public class ProductMapper {
     public static void fromUpdateProductRequest(Product product, UpdateProductRequest updateProductRequest) {
         product.setName(updateProductRequest.getName());
         product.setDescription(updateProductRequest.getDescription());
+        product.setBrand(updateProductRequest.getBrand());
+        product.setCategory(updateProductRequest.getCategory());
         product.setPrice(updateProductRequest.getPrice());
         product.setStock(updateProductRequest.getStock());
     }

@@ -68,6 +68,8 @@ public class ProductService implements IProductService {
         Product product = new Product();
         product.setName(addProductRequest.getName());
         product.setDescription(addProductRequest.getDescription());
+        product.setBrand(normalizeLabel(addProductRequest.getBrand()));
+        product.setCategory(normalizeLabel(addProductRequest.getCategory()));
         product.setPrice(addProductRequest.getPrice());
         product.setStock(addProductRequest.getStock());
 
@@ -161,6 +163,8 @@ public class ProductService implements IProductService {
 
         product.setName(updateProductRequest.getName());
         product.setDescription(updateProductRequest.getDescription());
+        product.setBrand(normalizeLabel(updateProductRequest.getBrand()));
+        product.setCategory(normalizeLabel(updateProductRequest.getCategory()));
         product.setPrice(newPrice);
         product.setStock(updateProductRequest.getStock());
 
@@ -202,5 +206,11 @@ public class ProductService implements IProductService {
             product.setName(product.getName() + "__deleted__" + product.getId());
             productRepository.save(product);
         });
+    }
+
+    private static String normalizeLabel(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

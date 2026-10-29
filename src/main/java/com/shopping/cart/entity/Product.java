@@ -18,6 +18,15 @@ public class Product extends BaseEntity {
 
     @Column(length = 1000)
     private String description;
+
+    /** e.g. Apple, Samsung, ASUS — applies across phones, laptops, desktops, etc. */
+    @Column(length = 120)
+    private String brand;
+
+    /** e.g. Smartphones, Laptops, Tablets, Audio / Headphones */
+    @Column(length = 120)
+    private String category;
+
     private BigDecimal price;
     private int stock;
 
