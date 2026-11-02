@@ -459,6 +459,20 @@ public class DataInitializer implements ApplicationRunner {
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588232/pixel-tech/products/ipad-finish-select-202503-yellow-av1-2a86b0cd.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588234/pixel-tech/products/ipad-finish-select-202503-yellow-av2-f80e0d9e.jpg"
                 ));
+        seedProduct("iPad mini",
+                "Compact 8.3\" Liquid Retina with all-day battery, Landscape 12MP Ultra Wide front camera, and Apple Pencil support. Choose storage and finish. Finishes: Midnight and Starlight.",
+                "Apple", "Tablets", "1899000.00", 18,
+                List.of(
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588695/pixel-tech/products/ipad-mini-finish-unselect-202610-gallery-1-e883b88e.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588697/pixel-tech/products/ipad-mini-finish-unselect-202610-gallery-2-b875a554.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588698/pixel-tech/products/ipad-mini-finish-unselect-202610-gallery-3-809d0c50.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588700/pixel-tech/products/ipad-mini-finish-select-202610-midnight-f3fb254f.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588702/pixel-tech/products/ipad-mini-finish-select-202610-midnight-av1-5b41c0da.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588703/pixel-tech/products/ipad-mini-finish-select-202610-midnight-av2-c4aefee4.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588705/pixel-tech/products/ipad-mini-finish-select-202610-starlight-7b42e3c8.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588706/pixel-tech/products/ipad-mini-finish-select-202610-starlight-av1-e700ffcc.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588708/pixel-tech/products/ipad-mini-finish-select-202610-starlight-av2-ae8d8a0f.jpg"
+                ));
         seedProduct("Sony WH-1000XM5",
                 "Industry-leading noise cancelling headphones with 30-hour battery and multipoint Bluetooth.",
                 "Sony", "Audio / Headphones", "1299000.00", 20,
