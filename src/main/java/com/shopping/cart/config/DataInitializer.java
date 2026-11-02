@@ -439,6 +439,26 @@ public class DataInitializer implements ApplicationRunner {
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588076/pixel-tech/products/ipad-air-finish-select-202405-13inch-starlight-av1-70244de9.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588078/pixel-tech/products/ipad-air-finish-select-202405-13inch-starlight-av2-f1ce8da3.jpg"
                 ));
+        seedProduct("iPad",
+                "11th-generation iPad with the A16 chip, 11\" Liquid Retina display, Landscape 12MP Ultra Wide front camera, and USB-C. Choose storage and finish. Finishes: Blue, Pink, Yellow, and Silver.",
+                "Apple", "Tablets", "1499000.00", 20,
+                List.of(
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588214/pixel-tech/products/ipad-finish-unselect-202503-gallery-1-7f64bfc3.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588216/pixel-tech/products/ipad-finish-unselect-202503-gallery-2-c90e562e.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588217/pixel-tech/products/ipad-finish-unselect-202503-gallery-3-0159b04a.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588219/pixel-tech/products/ipad-finish-select-202503-blue-68f016f4.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588220/pixel-tech/products/ipad-finish-select-202503-blue-av1-f2fe0ad4.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588221/pixel-tech/products/ipad-finish-select-202503-blue-av2-f65f577f.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588223/pixel-tech/products/ipad-finish-select-202503-pink-7a74fe8e.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588224/pixel-tech/products/ipad-finish-select-202503-pink-av1-6980fef3.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588226/pixel-tech/products/ipad-finish-select-202503-pink-av2-644cdb07.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588227/pixel-tech/products/ipad-finish-select-202503-silver-8210c1b8.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588228/pixel-tech/products/ipad-finish-select-202503-silver-av1-b5cb2ffa.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588230/pixel-tech/products/ipad-finish-select-202503-silver-av2-c88050e2.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588231/pixel-tech/products/ipad-finish-select-202503-yellow-6c62ce6f.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588232/pixel-tech/products/ipad-finish-select-202503-yellow-av1-2a86b0cd.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588234/pixel-tech/products/ipad-finish-select-202503-yellow-av2-f80e0d9e.jpg"
+                ));
         seedProduct("Sony WH-1000XM5",
                 "Industry-leading noise cancelling headphones with 30-hour battery and multipoint Bluetooth.",
                 "Sony", "Audio / Headphones", "1299000.00", 20,
