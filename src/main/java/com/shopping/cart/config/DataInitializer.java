@@ -276,14 +276,16 @@ public class DataInitializer implements ApplicationRunner {
                 "Most advanced MacBook Pro with PROLED XDR (Tandem OLED) touch display, M5 Pro or M5 Max, and up to 24-hour battery. Choose 14.2\" or 16.3\", memory, and storage. Finishes: Space Black and Silver.",
                 "Apple", "Laptops", "8999000.00", 10,
                 List.of(
-                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259216/pixel-tech/products/macbook-pro-proled-size-unselect-202610-gallery-1-4d56699f.jpg",
+                        // Unselect: open-screen hero first (gallery-2); ports composite is gallery-1.
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259218/pixel-tech/products/macbook-pro-proled-size-unselect-202610-gallery-2-4195d647.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259216/pixel-tech/products/macbook-pro-proled-size-unselect-202610-gallery-1-4d56699f.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259210/pixel-tech/products/macbook-pro-proled-size-select-202610-14inch-e75ea356.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259207/pixel-tech/products/macbook-pro-proled-size-select-202610-14inch-av1-82c363ee.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259209/pixel-tech/products/macbook-pro-proled-size-select-202610-14inch-av2-aab5e05a.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259212/pixel-tech/products/macbook-pro-proled-size-select-202610-16inch-159979c9.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259213/pixel-tech/products/macbook-pro-proled-size-select-202610-16inch-av1-b59d54de.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259215/pixel-tech/products/macbook-pro-proled-size-select-202610-16inch-av2-b6df6d3d.jpg",
+                        // Finish: hero → lid → ports → edge
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259201/pixel-tech/products/macbook-pro-proled-finish-select-202610-14inch-spaceblack-av4-7b1f333b.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259204/pixel-tech/products/macbook-pro-proled-finish-select-202610-14inch-spaceblack-av6-6e4948fd.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259196/pixel-tech/products/macbook-pro-proled-finish-select-202610-14inch-spaceblack-48f19015.jpg",
