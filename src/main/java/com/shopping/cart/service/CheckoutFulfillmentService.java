@@ -291,18 +291,23 @@ public class CheckoutFulfillmentService {
         return null;
     }
 
-    /** Fallback when Stripe line used a fixed Price ID without variant metadata. */
+    /**
+     * Fallback when Stripe line used a fixed Price ID without variant metadata.
+     * Only safe when the cart has a single configured line for that product.
+     */
     private String peekCartVariant(User user, UUID productId) {
         Cart cart = cartRepository.findByUserWithItems(user);
         if (cart == null || cart.getCartItems() == null) {
             return null;
         }
-        return cart.getCartItems().stream()
+        var variants = cart.getCartItems().stream()
                 .filter(item -> item.getProduct() != null && productId.equals(item.getProduct().getId()))
                 .map(CartItem::getVariantLabel)
                 .filter(v -> v != null && !v.isBlank())
-                .findFirst()
-                .orElse(null);
+                .map(String::trim)
+                .distinct()
+                .toList();
+        return variants.size() == 1 ? variants.get(0) : null;
     }
 
     /** Subtract paid quantities from cart lines (do not wipe lines the user increased after checkout). */

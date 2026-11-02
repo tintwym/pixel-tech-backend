@@ -3,6 +3,7 @@ package com.shopping.cart.controller.api;
 import com.shopping.cart.dto.response.PromoValidateResponse;
 import com.shopping.cart.service.PromoCodeService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,5 +20,10 @@ public class PromoApiController {
     @GetMapping("/validate")
     public PromoValidateResponse validate(@RequestParam String code) {
         return promoCodeService.validate(code);
+    }
+
+    @PostMapping("/redeem")
+    public PromoValidateResponse redeem(@RequestParam String code) {
+        return promoCodeService.redeem(code);
     }
 }

@@ -87,6 +87,33 @@ public class PromoCodeService {
                 .orElseGet(() -> new PromoValidateResponse(false, code, null, null, null, "This promotional code is not valid."));
     }
 
+    /** Increments redemption count after a successful checkout that used the code. */
+    @Transactional
+    public PromoValidateResponse redeem(String rawCode) {
+        String code = normalize(rawCode);
+        if (code.isEmpty()) {
+            return new PromoValidateResponse(false, null, null, null, null, "Enter a promo code");
+        }
+        PromoCode promo = promoCodeRepository.findByCodeIgnoreCase(code)
+                .orElse(null);
+        if (promo == null) {
+            return new PromoValidateResponse(false, code, null, null, null, "This promotional code is not valid.");
+        }
+        PromoValidateResponse check = validatePromo(promo);
+        if (!check.valid()) {
+            return check;
+        }
+        promo.setRedemptionCount(promo.getRedemptionCount() + 1);
+        promoCodeRepository.save(promo);
+        return new PromoValidateResponse(
+                true,
+                promo.getCode(),
+                promo.getDiscountType().name(),
+                promo.getAmount(),
+                promo.getLabel(),
+                "Promo redeemed");
+    }
+
     private PromoValidateResponse validatePromo(PromoCode promo) {
         if (!promo.isActive()) {
             return invalid(promo, "This promo code is inactive.");

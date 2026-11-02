@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if ("/api/ai/status".equals(path) || "/api/ai/bundles".equals(path) || "/api/ai/search".equals(path)) {
             return true;
         }
-        if ("/api/promos/validate".equals(path)) {
+        if ("/api/promos/validate".equals(path) || "/api/promos/redeem".equals(path)) {
             return true;
         }
         return false;
