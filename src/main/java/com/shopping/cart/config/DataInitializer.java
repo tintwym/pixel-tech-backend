@@ -403,7 +403,7 @@ public class DataInitializer implements ApplicationRunner {
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589276/pixel-tech/products/ipad-pro-finish-select-202405-13inch-silver-40b4be38.jpg",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589277/pixel-tech/products/ipad-pro-finish-select-202405-13inch-silver-av1-a177ac23.jpg",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589278/pixel-tech/products/ipad-pro-finish-select-202405-13inch-silver-av2-a244b6f6.jpg"
-                );
+                ));
         seedProduct("iPad Air",
                 "Liquid Retina with M2, Landscape 12MP Ultra Wide front camera, Apple Pencil Pro support, and an all-day battery. Choose 11\" or 13\", storage, and finish. Finishes: Blue, Purple, Starlight, and Space Gray.",
                 "Apple", "Tablets", "2499000.00", 16,
@@ -437,7 +437,7 @@ public class DataInitializer implements ApplicationRunner {
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589267/pixel-tech/products/ipad-air-finish-select-202405-13inch-starlight-da5d2a1c.webp",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589268/pixel-tech/products/ipad-air-finish-select-202405-13inch-starlight-av1-826efec1.webp",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589269/pixel-tech/products/ipad-air-finish-select-202405-13inch-starlight-av2-a41306cd.webp"
-                );
+                ));
         seedProduct("iPad",
                 "11th-generation iPad with the A16 chip, 11\" Liquid Retina display, Landscape 12MP Ultra Wide front camera, and USB-C. Choose storage and finish. Finishes: Blue, Pink, Yellow, and Silver.",
                 "Apple", "Tablets", "1499000.00", 20,
@@ -457,7 +457,7 @@ public class DataInitializer implements ApplicationRunner {
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589247/pixel-tech/products/ipad-finish-select-202503-yellow-2f374c63.webp",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589248/pixel-tech/products/ipad-finish-select-202503-yellow-av1-140233b8.webp",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589249/pixel-tech/products/ipad-finish-select-202503-yellow-av2-b9f4491e.webp"
-                );
+                ));
         seedProduct("iPad mini",
                 "Compact 8.3\" Liquid Retina with all-day battery, Landscape 12MP Ultra Wide front camera, and Apple Pencil support. Choose storage and finish. Finishes: Midnight and Starlight.",
                 "Apple", "Tablets", "1899000.00", 18,
@@ -472,7 +472,7 @@ public class DataInitializer implements ApplicationRunner {
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589236/pixel-tech/products/ipad-mini-finish-select-202610-starlight-b7b78a86.webp",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589237/pixel-tech/products/ipad-mini-finish-select-202610-starlight-av1-79d15c26.webp",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589238/pixel-tech/products/ipad-mini-finish-select-202610-starlight-av2-3b5ad9c3.webp"
-                );
+                ));
         seedProduct("Sony WH-1000XM5",
                 "Industry-leading noise cancelling headphones with 30-hour battery and multipoint Bluetooth.",
                 "Sony", "Audio / Headphones", "1299000.00", 20,
