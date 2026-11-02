@@ -464,6 +464,7 @@ public class DataInitializer implements ApplicationRunner {
                 "Apple", "Tablets", "1899000.00", 18,
                 List.of(
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588695/pixel-tech/products/ipad-mini-finish-unselect-202610-gallery-1-e883b88e.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/video/upload/v1793588806/pixel-tech/products/ipad-mini-finish-unselect-motion-gallery-2-202610-fe5a64a1.mp4",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588697/pixel-tech/products/ipad-mini-finish-unselect-202610-gallery-2-b875a554.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588698/pixel-tech/products/ipad-mini-finish-unselect-202610-gallery-3-809d0c50.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793588700/pixel-tech/products/ipad-mini-finish-select-202610-midnight-f3fb254f.jpg",
