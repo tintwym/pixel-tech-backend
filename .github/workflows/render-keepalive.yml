@@ -1,0 +1,24 @@
+# Pings the Render API every 10 minutes so a free-plan service does not sleep.
+# Harmless on Starter (always-on). Set repo variable RENDER_HEALTH_URL, e.g.
+#   https://pixel-tech-backend.onrender.com/actuator/health
+name: Render keep-alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake Render service
+        env:
+          HEALTH_URL: ${{ vars.RENDER_HEALTH_URL }}
+        run: |
+          if [ -z "$HEALTH_URL" ]; then
+            echo "Set repository variable RENDER_HEALTH_URL to skip sleep (e.g. https://YOUR-SERVICE.onrender.com/actuator/health)"
+            exit 0
+          fi
+          curl -fsS --max-time 90 "$HEALTH_URL" | head -c 200
+          echo

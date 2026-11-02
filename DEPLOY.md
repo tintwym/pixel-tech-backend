@@ -89,7 +89,7 @@ curl https://YOUR-SERVICE.onrender.com/api/products/index
 
 Expect JSON from `/api/products/index`, not HTML.
 
-> **Free plan:** the service sleeps after idle. First request after sleep can take 30–60s.
+> **Plan:** use **Starter** (set in `render.yaml`) so the API stays awake. Free sleeps after ~15 minutes idle and the first request can take 30–60s. If you stay on Free, enable the `Render keep-alive` GitHub Action and set repo variable `RENDER_HEALTH_URL` to `https://YOUR-SERVICE.onrender.com/actuator/health`.
 
 ## Admin catalog
 
@@ -107,6 +107,6 @@ Expect JSON from `/api/products/index`, not HTML.
 |---------|-----|
 | CORS error | `APP_FRONTEND_BASE_URL` must match your Vercel origin exactly |
 | `DATABASE_URL is not set` on startup | Add `DATABASE_URL` in Render → Environment |
-| Cold start slow / 502 on first hit | Free tier sleep — wait and retry, or upgrade to Starter |
+| Cold start slow / 502 on first hit | Upgrade to Starter (always-on), or enable keep-alive workflow + `RENDER_HEALTH_URL` |
 | Build fails | Run `docker build .` locally; ensure repo root has `Dockerfile` |
 | Container failed to start | Check Render logs; usually missing `DATABASE_URL` or `JWT_SECRET` |

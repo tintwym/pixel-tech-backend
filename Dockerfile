@@ -31,4 +31,5 @@ USER spring:spring
 
 EXPOSE 8080
 
+# Render sets JAVA_TOOL_OPTIONS (picked up automatically by the JVM).
 ENTRYPOINT ["java", "-jar", "app.jar"]
