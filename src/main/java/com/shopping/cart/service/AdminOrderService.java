@@ -87,11 +87,16 @@ public class AdminOrderService {
 
     private static AdminOrderResponse.Item toItem(OrderItem item) {
         var product = item.getProduct();
+        String variant = item.getVariantLabel();
+        if (variant != null && variant.isBlank()) {
+            variant = null;
+        }
         return new AdminOrderResponse.Item(
                 product != null ? product.getId() : null,
                 product != null ? product.getName() : "Removed product",
                 item.getQuantity(),
-                item.getPrice());
+                item.getPrice(),
+                variant);
     }
 
     private static String customerName(User user) {

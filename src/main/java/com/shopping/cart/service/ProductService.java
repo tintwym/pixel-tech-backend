@@ -18,7 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -200,6 +202,50 @@ public class ProductService implements IProductService {
             product.setStripePriceId(createStripePrice(product.getStripeProductId(), newPrice));
         }
 
+        return productRepository.save(product);
+    }
+
+    @Override
+    @Transactional
+    public Product reorderImages(UUID id, List<UUID> imageIds) {
+        Product product = productRepository.findActiveByIdWithImages(Objects.requireNonNull(id))
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        if (product.isDeleted()) {
+            throw new IllegalStateException("Product is no longer available");
+        }
+        if (imageIds == null || imageIds.isEmpty()) {
+            throw new IllegalArgumentException("imageIds is required");
+        }
+
+        List<ProductImage> current = product.getImages();
+        if (current == null || current.isEmpty()) {
+            throw new IllegalArgumentException("Product has no gallery images to reorder");
+        }
+
+        Map<UUID, ProductImage> byId = new LinkedHashMap<>();
+        for (ProductImage image : current) {
+            if (image != null && image.getId() != null) {
+                byId.put(image.getId(), image);
+            }
+        }
+
+        List<ProductImage> ordered = new ArrayList<>();
+        for (UUID imageId : imageIds) {
+            if (imageId == null) continue;
+            ProductImage image = byId.remove(imageId);
+            if (image != null) {
+                ordered.add(image);
+            }
+        }
+        // Keep any images the client omitted, in prior relative order.
+        ordered.addAll(byId.values());
+
+        for (int i = 0; i < ordered.size(); i++) {
+            ordered.get(i).setSortOrder(i);
+        }
+
+        current.clear();
+        current.addAll(ordered);
         return productRepository.save(product);
     }
 

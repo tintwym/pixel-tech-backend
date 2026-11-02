@@ -4,6 +4,7 @@
 package com.shopping.cart.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -29,6 +30,10 @@ public class CartItem extends BaseEntity {
 
     private int quantity;
     private BigDecimal price;
+
+    /** Finish · size · storage label chosen on the storefront (e.g. "Space Black · 14\" · 24GB · 512GB"). */
+    @Column(name = "variant_label", length = 255)
+    private String variantLabel;
 
     // Default constructor is required by JPA
     public CartItem() {}

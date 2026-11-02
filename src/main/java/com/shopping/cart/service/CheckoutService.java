@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -83,24 +85,38 @@ public class CheckoutService implements ICheckoutService {
                         + " (requested " + cartItem.getQuantity() + ", available " + product.getStock() + ")");
             }
 
+            String variantLabel = cartItem.getVariantLabel() == null ? "" : cartItem.getVariantLabel().trim();
+            boolean hasVariant = !variantLabel.isEmpty();
+            // Fixed Stripe prices cannot carry per-line variant metadata — use PriceData when configured.
             SessionCreateParams.LineItem stripeLineItem;
-            if (product.getStripePriceId() != null && !product.getStripePriceId().isBlank()) {
+            if (!hasVariant
+                    && product.getStripePriceId() != null
+                    && !product.getStripePriceId().isBlank()) {
                 stripeLineItem = SessionCreateParams.LineItem.builder()
                         .setPrice(product.getStripePriceId())
                         .setQuantity((long) cartItem.getQuantity())
                         .build();
             } else {
+                String displayName = hasVariant
+                        ? product.getName() + " · " + variantLabel
+                        : product.getName();
+                var productData = SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                        .setName(displayName)
+                        .putMetadata("internal_product_id", product.getId().toString());
+                if (hasVariant) {
+                    productData.putMetadata("variant_label", variantLabel);
+                }
                 stripeLineItem = SessionCreateParams.LineItem.builder()
                         .setPriceData(
                                 SessionCreateParams.LineItem.PriceData.builder()
                                         .setCurrency("sgd")
-                                        .setUnitAmount(StripeMoney.mmkToSgdCents(product.getPrice()))
-                                        .setProductData(
-                                                SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                        .setName(product.getName())
-                                                        .putMetadata("internal_product_id", product.getId().toString())
-                                                        .build()
-                                        )
+                                        .setUnitAmount(StripeMoney.mmkToSgdCents(
+                                                cartItem.getPrice() != null && cartItem.getQuantity() > 0
+                                                        ? cartItem.getPrice()
+                                                                .divide(BigDecimal.valueOf(cartItem.getQuantity()),
+                                                                        RoundingMode.HALF_UP)
+                                                        : product.getPrice()))
+                                        .setProductData(productData.build())
                                         .build()
                         )
                         .setQuantity((long) cartItem.getQuantity())

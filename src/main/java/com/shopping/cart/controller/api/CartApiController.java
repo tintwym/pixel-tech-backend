@@ -24,7 +24,6 @@ public class CartApiController {
         Map<String, Integer> response = new HashMap<>();
         response.put("count", count);
 
-        // Add Cache-Control header
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-store, must-revalidate");
 
@@ -33,7 +32,6 @@ public class CartApiController {
 
     @GetMapping("/show")
     public ResponseEntity<?> getCartByUser(@RequestHeader("Authorization") String token) {
-        // Add Cache-Control header
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-store, must-revalidate");
 
@@ -44,10 +42,10 @@ public class CartApiController {
     public ResponseEntity<?> addProductToCart(
             @RequestHeader("Authorization") String token,
             @RequestParam UUID productId,
-            @RequestParam int quantity) {
-        cartService.addProductToCart(token, productId, quantity);
+            @RequestParam int quantity,
+            @RequestParam(required = false) String variantLabel) {
+        cartService.addProductToCart(token, productId, quantity, variantLabel);
 
-        // Add Cache-Control header
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-store, must-revalidate");
 
@@ -58,10 +56,10 @@ public class CartApiController {
     public ResponseEntity<?> updateProductInCart(
             @RequestHeader("Authorization") String token,
             @RequestParam UUID productId,
-            @RequestParam int quantity) {
-        cartService.updateProductInCart(token, productId, quantity);
+            @RequestParam int quantity,
+            @RequestParam(required = false) String variantLabel) {
+        cartService.updateProductInCart(token, productId, quantity, variantLabel);
 
-        // Add Cache-Control header
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-store, must-revalidate");
 
@@ -71,10 +69,10 @@ public class CartApiController {
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteProductFromCart(
             @RequestHeader("Authorization") String token,
-            @RequestParam UUID productId) {
-        cartService.deleteProductFromCart(token, productId);
+            @RequestParam UUID productId,
+            @RequestParam(required = false) String variantLabel) {
+        cartService.deleteProductFromCart(token, productId, variantLabel);
 
-        // Add Cache-Control header
         HttpHeaders headers = new HttpHeaders();
         headers.add("Cache-Control", "no-store, must-revalidate");
 

@@ -149,8 +149,12 @@ public class CheckoutFulfillmentService {
                 throw new IllegalStateException("Checkout session missing amount_total");
             }
 
+            // Key = productId + "\0" + variantLabel so configured SKUs stay separate order lines.
+            Map<String, Integer> qtyByLine = new LinkedHashMap<>();
+            Map<String, BigDecimal> lineTotalByKey = new LinkedHashMap<>();
+            Map<String, UUID> productIdByKey = new LinkedHashMap<>();
+            Map<String, String> variantByKey = new LinkedHashMap<>();
             Map<UUID, Integer> qtyByProduct = new LinkedHashMap<>();
-            Map<UUID, BigDecimal> lineTotalByProduct = new LinkedHashMap<>();
             boolean catalogIssue = false;
             for (LineItem lineItem : lineItems) {
                 Product product = resolveProduct(lineItem);
@@ -167,11 +171,19 @@ public class CheckoutFulfillmentService {
                 }
                 long lineCents = lineItem.getAmountTotal() != null ? lineItem.getAmountTotal() : 0L;
                 BigDecimal lineTotal = StripeMoney.sgdCentsToMmk(lineCents);
-                qtyByProduct.merge(product.getId(), qty, (left, right) -> left + right);
-                lineTotalByProduct.merge(product.getId(), lineTotal, (left, right) -> left.add(right));
+                String variant = resolveVariantLabel(lineItem);
+                if (variant == null || variant.isBlank()) {
+                    variant = peekCartVariant(user, product.getId());
+                }
+                String key = lineKey(product.getId(), variant);
+                qtyByLine.merge(key, qty, Integer::sum);
+                lineTotalByKey.merge(key, lineTotal, BigDecimal::add);
+                productIdByKey.put(key, product.getId());
+                variantByKey.put(key, variant);
+                qtyByProduct.merge(product.getId(), qty, Integer::sum);
             }
 
-            if (qtyByProduct.isEmpty()) {
+            if (qtyByLine.isEmpty()) {
                 throw new IllegalStateException("No fulfillable line items on paid session " + sessionId);
             }
 
@@ -208,8 +220,9 @@ public class CheckoutFulfillmentService {
             order.setStripeCheckoutSessionId(sessionId);
             order = orderRepository.save(order);
 
-            for (Map.Entry<UUID, Integer> e : qtyByProduct.entrySet()) {
-                Product fresh = productRepository.findById(Objects.requireNonNull(e.getKey())).orElseThrow();
+            for (Map.Entry<String, Integer> e : qtyByLine.entrySet()) {
+                UUID productId = productIdByKey.get(e.getKey());
+                Product fresh = productRepository.findById(Objects.requireNonNull(productId)).orElseThrow();
                 entityManager.lock(fresh, LockModeType.PESSIMISTIC_WRITE);
                 int qty = e.getValue();
 
@@ -217,11 +230,20 @@ public class CheckoutFulfillmentService {
                 orderItem.setOrder(order);
                 orderItem.setProduct(fresh);
                 orderItem.setQuantity(qty);
-                BigDecimal paidLineTotal = lineTotalByProduct.getOrDefault(e.getKey(), BigDecimal.ZERO)
+                BigDecimal paidLineTotal = lineTotalByKey.getOrDefault(e.getKey(), BigDecimal.ZERO)
                         .setScale(2, RoundingMode.HALF_UP);
                 orderItem.setPrice(paidLineTotal);
+                String variant = variantByKey.get(e.getKey());
+                if (variant != null && !variant.isBlank()) {
+                    orderItem.setVariantLabel(variant.trim());
+                }
                 orderItemRepository.save(orderItem);
+            }
 
+            for (Map.Entry<UUID, Integer> e : qtyByProduct.entrySet()) {
+                Product fresh = productRepository.findById(Objects.requireNonNull(e.getKey())).orElseThrow();
+                entityManager.lock(fresh, LockModeType.PESSIMISTIC_WRITE);
+                int qty = e.getValue();
                 if (fresh.isDeleted()) {
                     continue;
                 }
@@ -245,35 +267,74 @@ public class CheckoutFulfillmentService {
             }
             paymentRepository.save(payment);
 
-            removePaidItemsFromCart(user, qtyByProduct);
+            removePaidItemsFromCart(user, qtyByLine);
         });
     }
 
+    private static String lineKey(UUID productId, String variantLabel) {
+        String v = variantLabel == null ? "" : variantLabel.trim();
+        return productId + "\0" + v;
+    }
+
+    private String resolveVariantLabel(LineItem lineItem) {
+        Price price = lineItem.getPrice();
+        if (price == null) {
+            return null;
+        }
+        com.stripe.model.Product stripeProduct = price.getProductObject();
+        if (stripeProduct != null && stripeProduct.getMetadata() != null) {
+            String variant = stripeProduct.getMetadata().get("variant_label");
+            if (variant != null && !variant.isBlank()) {
+                return variant.trim();
+            }
+        }
+        return null;
+    }
+
+    /** Fallback when Stripe line used a fixed Price ID without variant metadata. */
+    private String peekCartVariant(User user, UUID productId) {
+        Cart cart = cartRepository.findByUserWithItems(user);
+        if (cart == null || cart.getCartItems() == null) {
+            return null;
+        }
+        return cart.getCartItems().stream()
+                .filter(item -> item.getProduct() != null && productId.equals(item.getProduct().getId()))
+                .map(CartItem::getVariantLabel)
+                .filter(v -> v != null && !v.isBlank())
+                .findFirst()
+                .orElse(null);
+    }
+
     /** Subtract paid quantities from cart lines (do not wipe lines the user increased after checkout). */
-    private void removePaidItemsFromCart(User user, Map<UUID, Integer> paidQtyByProduct) {
+    private void removePaidItemsFromCart(User user, Map<String, Integer> paidQtyByLine) {
         Cart cart = cartRepository.findByUserWithItems(user);
         if (cart == null) {
             return;
         }
-        Map<UUID, Integer> remainingPaid = new LinkedHashMap<>(paidQtyByProduct);
+        Map<String, Integer> remainingPaid = new LinkedHashMap<>(paidQtyByLine);
         Iterator<CartItem> iterator = cart.getCartItems().iterator();
         while (iterator.hasNext()) {
             CartItem item = iterator.next();
             if (item.getProduct() == null || item.getProduct().getId() == null) {
                 continue;
             }
-            UUID productId = item.getProduct().getId();
-            Integer paidLeft = remainingPaid.get(productId);
+            String key = lineKey(item.getProduct().getId(), item.getVariantLabel());
+            Integer paidLeft = remainingPaid.get(key);
             if (paidLeft == null || paidLeft <= 0) {
-                continue;
+                // Legacy carts / fixed-price Stripe lines may only key by product.
+                key = lineKey(item.getProduct().getId(), null);
+                paidLeft = remainingPaid.get(key);
+                if (paidLeft == null || paidLeft <= 0) {
+                    continue;
+                }
             }
             int lineQty = item.getQuantity();
             if (lineQty <= paidLeft) {
-                remainingPaid.put(productId, paidLeft - lineQty);
+                remainingPaid.put(key, paidLeft - lineQty);
                 iterator.remove();
             } else {
                 int newQty = lineQty - paidLeft;
-                remainingPaid.put(productId, 0);
+                remainingPaid.put(key, 0);
                 item.setQuantity(newQty);
                 if (item.getProduct().getPrice() != null) {
                     item.setPrice(item.getProduct().getPrice()
@@ -288,7 +349,7 @@ public class CheckoutFulfillmentService {
         }
         BigDecimal updatedTotal = cart.getCartItems().stream()
                 .map(item -> Objects.requireNonNullElse(item.getPrice(), BigDecimal.ZERO))
-                .reduce(BigDecimal.ZERO, (left, right) -> left.add(right));
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         cart.setTotalPrice(updatedTotal);
         cartRepository.save(cart);
     }

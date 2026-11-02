@@ -2,9 +2,11 @@ package com.shopping.cart.config;
 
 import com.shopping.cart.entity.Product;
 import com.shopping.cart.entity.ProductImage;
+import com.shopping.cart.entity.PromoCode;
 import com.shopping.cart.entity.Role;
 import com.shopping.cart.entity.User;
 import com.shopping.cart.repository.ProductRepository;
+import com.shopping.cart.repository.PromoCodeRepository;
 import com.shopping.cart.repository.RoleRepository;
 import com.shopping.cart.repository.UserRepository;
 import com.shopping.cart.utility.PasswordHashingUtility;
@@ -28,6 +30,7 @@ public class DataInitializer implements ApplicationRunner {
     private final RoleRepository roleRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final PromoCodeRepository promoCodeRepository;
     private final TransactionTemplate transactionTemplate;
 
     @Value("${app.admin.seed-username:}")
@@ -40,10 +43,12 @@ public class DataInitializer implements ApplicationRunner {
             RoleRepository roleRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
+            PromoCodeRepository promoCodeRepository,
             PlatformTransactionManager transactionManager) {
         this.roleRepository = roleRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.promoCodeRepository = promoCodeRepository;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
@@ -57,7 +62,29 @@ public class DataInitializer implements ApplicationRunner {
         seedSampleProducts();
         backfillMissingBrandCategory();
         runInTransaction(this::seedAdminUser);
+        runInTransaction(this::seedPromoCodes);
         log.info("DataInitializer finished");
+    }
+
+    private void seedPromoCodes() {
+        seedPromo("WELCOME5K", PromoCode.DiscountType.FIXED_MMK, new BigDecimal("5000"), "Welcome 5,000 MMK off");
+        seedPromo("PIXEL10", PromoCode.DiscountType.PERCENT, new BigDecimal("10"), "10% off storewide");
+        seedPromo("FREESHIP", PromoCode.DiscountType.FREE_SHIPPING, BigDecimal.ZERO, "Free express delivery");
+    }
+
+    private void seedPromo(String code, PromoCode.DiscountType type, BigDecimal amount, String label) {
+        if (promoCodeRepository.existsByCodeIgnoreCase(code)) {
+            return;
+        }
+        PromoCode promo = new PromoCode();
+        promo.setCode(code);
+        promo.setDiscountType(type);
+        promo.setAmount(amount);
+        promo.setActive(true);
+        promo.setRedemptionCount(0);
+        promo.setLabel(label);
+        promoCodeRepository.save(promo);
+        log.info("Seeded promo code {}", code);
     }
 
     /** Ensures brand/category are filled even if an earlier seed path skipped them. */

@@ -13,5 +13,7 @@ public interface IProductService {
     Product getProductById(UUID id);
     Product store(AddProductRequest addProductRequest, MultipartFile[] images);
     Product update(UUID id, UpdateProductRequest updateProductRequest, MultipartFile[] newImages, boolean replaceImages);
+    /** Reorder gallery; first id becomes the primary catalog card image. */
+    Product reorderImages(UUID id, List<UUID> imageIds);
     void delete(UUID id);
 }

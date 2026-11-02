@@ -1,6 +1,7 @@
 package com.shopping.cart.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -17,6 +18,10 @@ import java.math.BigDecimal;
 public class OrderItem extends BaseEntity {
     private int quantity;
     private BigDecimal price;
+
+    /** Finish · size · storage captured at checkout for ops and admin order lines. */
+    @Column(name = "variant_label", length = 255)
+    private String variantLabel;
 
     @JsonIgnore
     @ManyToOne  // Each order item belongs to an order

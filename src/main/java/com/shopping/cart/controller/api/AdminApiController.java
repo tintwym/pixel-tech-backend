@@ -1,9 +1,12 @@
 package com.shopping.cart.controller.api;
 
+import com.shopping.cart.dto.request.CreatePromoRequest;
 import com.shopping.cart.dto.request.RestockRequest;
 import com.shopping.cart.dto.request.UpdateOrderStatusRequest;
 import com.shopping.cart.dto.response.AdminOrderResponse;
+import com.shopping.cart.dto.response.PromoCodeResponse;
 import com.shopping.cart.service.AdminOrderService;
+import com.shopping.cart.service.PromoCodeService;
 import com.shopping.cart.service.ai.AdminGuard;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -19,10 +22,15 @@ import java.util.UUID;
 public class AdminApiController {
     private final AdminGuard adminGuard;
     private final AdminOrderService adminOrderService;
+    private final PromoCodeService promoCodeService;
 
-    public AdminApiController(AdminGuard adminGuard, AdminOrderService adminOrderService) {
+    public AdminApiController(
+            AdminGuard adminGuard,
+            AdminOrderService adminOrderService,
+            PromoCodeService promoCodeService) {
         this.adminGuard = adminGuard;
         this.adminOrderService = adminOrderService;
+        this.promoCodeService = promoCodeService;
     }
 
     @GetMapping("/orders")
@@ -48,5 +56,29 @@ public class AdminApiController {
         adminGuard.requireAdmin(request);
         int stock = adminOrderService.restock(id, body.getAmount());
         return Map.of("id", id, "stock", stock);
+    }
+
+    @GetMapping("/promos")
+    public List<PromoCodeResponse> listPromos(HttpServletRequest request) {
+        adminGuard.requireAdmin(request);
+        return promoCodeService.listAll();
+    }
+
+    @PostMapping("/promos")
+    public PromoCodeResponse createPromo(
+            HttpServletRequest request,
+            @Valid @RequestBody CreatePromoRequest body) {
+        adminGuard.requireAdmin(request);
+        return promoCodeService.create(body);
+    }
+
+    @PatchMapping("/promos/{id}/active")
+    public PromoCodeResponse setPromoActive(
+            HttpServletRequest request,
+            @PathVariable UUID id,
+            @RequestBody Map<String, Boolean> body) {
+        adminGuard.requireAdmin(request);
+        boolean active = Boolean.TRUE.equals(body.get("active"));
+        return promoCodeService.setActive(id, active);
     }
 }

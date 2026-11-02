@@ -1,6 +1,7 @@
 package com.shopping.cart.controller.api;
 
 import com.shopping.cart.dto.request.AddProductRequest;
+import com.shopping.cart.dto.request.ReorderProductImagesRequest;
 import com.shopping.cart.dto.request.UpdateProductRequest;
 import com.shopping.cart.entity.Product;
 import com.shopping.cart.service.ProductService;
@@ -86,6 +87,28 @@ public class ProductApiController {
                 request,
                 images != null ? images : new MultipartFile[0],
                 replaceImages);
+    }
+
+    /** Reorder gallery images. First id in the list becomes the catalog card hero. */
+    @PutMapping(value = "/{id}/images/order", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Product reorderProductImages(
+            @RequestHeader("Authorization") String token,
+            @PathVariable UUID id,
+            @RequestBody ReorderProductImagesRequest body) {
+        userService.requireAdmin(token);
+        if (body == null || body.getImageIds() == null || body.getImageIds().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "imageIds is required");
+        }
+        try {
+            return productService.reorderImages(id, body.getImageIds());
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (RuntimeException e) {
+            if ("Product not found".equals(e.getMessage())) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+            }
+            throw e;
+        }
     }
 
     @DeleteMapping("/delete/{id}")

@@ -35,12 +35,11 @@ public class CartService implements ICartService {
         Cart cart = cartRepository.findByUserWithItems(user);
 
         if (cart == null || cart.getCartItems().isEmpty()) {
-            return 0; // Return 0 if no cart or cart is empty
+            return 0;
         }
 
-        // Sum the quantity of all items in the cart
         return cart.getCartItems().stream()
-                .mapToInt(item -> item.getQuantity())
+                .mapToInt(CartItem::getQuantity)
                 .sum();
     }
 
@@ -50,7 +49,6 @@ public class CartService implements ICartService {
         User user = userService.requireUser(token);
         Cart cart = cartRepository.findByUserWithItems(user);
         if (cart == null) {
-            // Avoid a blank HTTP 200 body — clients expect a JSON cart object.
             Cart empty = new Cart(BigDecimal.ZERO, user);
             empty.setCartItems(new ArrayList<>());
             return empty;
@@ -61,17 +59,15 @@ public class CartService implements ICartService {
 
     @Override
     @Transactional
-    public void addProductToCart(String token, UUID productId, int quantity) {
+    public void addProductToCart(String token, UUID productId, int quantity, String variantLabel) {
         User user = userService.requireUser(token);
 
-        // Retrieve the cart by user. If no cart exists, create a new one and save it.
         Cart cart = cartRepository.findByUserWithItems(user);
         if (cart == null) {
             cart = new Cart(BigDecimal.ZERO, user);
-            cart = cartRepository.save(cart); // Save the new cart before adding items
+            cart = cartRepository.save(cart);
         }
 
-        // Retrieve the product by UUID. If the product is not found, throw an exception.
         Product product = productRepository.findById(Objects.requireNonNull(productId))
                 .orElseThrow(() -> new IllegalStateException("Product not found"));
 
@@ -81,47 +77,46 @@ public class CartService implements ICartService {
         if (quantity <= 0) {
             throw new IllegalStateException("Quantity must be greater than 0");
         }
-        if (product.getStock() < quantity) {
+
+        String normalizedVariant = normalizeVariant(variantLabel);
+        int otherQty = cart.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId)
+                        && !matchesVariant(item, normalizedVariant))
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+
+        Optional<CartItem> existingCartItem = cart.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId)
+                        && matchesVariant(item, normalizedVariant))
+                .findFirst();
+
+        int currentLineQty = existingCartItem.map(CartItem::getQuantity).orElse(0);
+        int newLineQty = currentLineQty + quantity;
+        if (product.getStock() < otherQty + newLineQty) {
             throw new IllegalStateException("Insufficient stock");
         }
 
-        // Check if the product already exists in the cart
-        Optional<CartItem> existingCartItem = cart.getCartItems().stream()
-                .filter(item -> item.getProduct().getId().equals(productId))
-                .findFirst();
-
         if (existingCartItem.isPresent()) {
-            // If the product exists in the cart, update the quantity
             CartItem cartItem = existingCartItem.get();
-            int newQty = cartItem.getQuantity() + quantity;
-            if (product.getStock() < newQty) {
-                throw new IllegalStateException("Insufficient stock");
+            cartItem.setQuantity(newLineQty);
+            cartItem.setPrice(product.getPrice().multiply(BigDecimal.valueOf(newLineQty)));
+            if (cartItem.getVariantLabel() == null && !normalizedVariant.isEmpty()) {
+                cartItem.setVariantLabel(normalizedVariant);
             }
-            cartItem.setQuantity(newQty); // Update the quantity
-
-            // Update the item's total price based on new quantity
-            cartItem.setPrice(cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
         } else {
-            // Create a new cart item if the product doesn't already exist in the cart
-            CartItem cartItem = new CartItem(cart, product, quantity, product.getPrice().multiply(BigDecimal.valueOf(quantity)));
+            CartItem cartItem = new CartItem(
+                    cart, product, quantity, product.getPrice().multiply(BigDecimal.valueOf(quantity)));
+            cartItem.setVariantLabel(normalizedVariant.isEmpty() ? null : normalizedVariant);
             cart.getCartItems().add(cartItem);
         }
 
-        // Recalculate the cart's total price by summing the total price of all items
-        BigDecimal updatedTotalPrice = cart.getCartItems().stream()
-                .map(item -> Objects.requireNonNullElse(item.getPrice(), BigDecimal.ZERO))
-                .reduce(BigDecimal.ZERO, (left, right) -> left.add(right));
-
-        cart.setTotalPrice(updatedTotalPrice); // Set the new total price for the cart
-
-        // Save the updated cart and its items
+        cart.setTotalPrice(sumCart(cart));
         cartRepository.save(cart);
     }
 
-
     @Override
     @Transactional
-    public void updateProductInCart(String token, UUID productId, int quantity) {
+    public void updateProductInCart(String token, UUID productId, int quantity, String variantLabel) {
         User user = userService.requireUser(token);
 
         Cart cart = cartRepository.findByUserWithItems(user);
@@ -136,31 +131,36 @@ public class CartService implements ICartService {
             throw new IllegalStateException("Product is no longer available");
         }
 
+        String normalizedVariant = normalizeVariant(variantLabel);
         CartItem cartItem = cart.getCartItems().stream()
-                .filter(item -> item.getProduct().getId().equals(productId))
+                .filter(item -> item.getProduct().getId().equals(productId)
+                        && matchesVariant(item, normalizedVariant))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Product is not in the cart"));
 
         if (quantity <= 0) {
             throw new IllegalStateException("Quantity must be greater than 0");
         }
-        if (product.getStock() < quantity) {
+
+        int otherQty = cart.getCartItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId)
+                        && !matchesVariant(item, normalizedVariant))
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+        if (product.getStock() < otherQty + quantity) {
             throw new IllegalStateException("Insufficient stock");
         }
 
         cartItem.setQuantity(quantity);
         cartItem.setPrice(product.getPrice().multiply(BigDecimal.valueOf(quantity)));
 
-        cart.setTotalPrice(cart.getCartItems().stream()
-                .map(item -> Objects.requireNonNullElse(item.getPrice(), BigDecimal.ZERO))
-                .reduce(BigDecimal.ZERO, (left, right) -> left.add(right)));
-
+        cart.setTotalPrice(sumCart(cart));
         cartRepository.save(cart);
     }
 
     @Override
     @Transactional
-    public void deleteProductFromCart(String token, UUID productId) {
+    public void deleteProductFromCart(String token, UUID productId, String variantLabel) {
         User user = userService.requireUser(token);
 
         Cart cart = cartRepository.findByUserWithItems(user);
@@ -172,17 +172,30 @@ public class CartService implements ICartService {
             throw new IllegalStateException("Product not found");
         }
 
+        String normalizedVariant = normalizeVariant(variantLabel);
         CartItem cartItem = cart.getCartItems().stream()
-                .filter(item -> item.getProduct().getId().equals(productId))
+                .filter(item -> item.getProduct().getId().equals(productId)
+                        && matchesVariant(item, normalizedVariant))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Product is not in the cart"));
 
         cart.getCartItems().remove(cartItem);
-        BigDecimal updatedTotal = cart.getCartItems().stream()
-                .map(item -> Objects.requireNonNullElse(item.getPrice(), BigDecimal.ZERO))
-                .reduce(BigDecimal.ZERO, (left, right) -> left.add(right));
-        cart.setTotalPrice(updatedTotal);
+        cart.setTotalPrice(sumCart(cart));
         cartRepository.save(cart);
+    }
+
+    private static BigDecimal sumCart(Cart cart) {
+        return cart.getCartItems().stream()
+                .map(item -> Objects.requireNonNullElse(item.getPrice(), BigDecimal.ZERO))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    static String normalizeVariant(String variantLabel) {
+        return variantLabel == null ? "" : variantLabel.trim();
+    }
+
+    private static boolean matchesVariant(CartItem item, String normalizedVariant) {
+        return normalizeVariant(item.getVariantLabel()).equals(normalizedVariant);
     }
 
     /** Force-load images while the transaction is open (OSIV is disabled). */

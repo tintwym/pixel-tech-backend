@@ -15,5 +15,10 @@ public record AdminOrderResponse(
         String createdAt,
         List<Item> items) {
 
-    public record Item(UUID productId, String productName, int quantity, BigDecimal price) {}
+    public record Item(
+            UUID productId,
+            String productName,
+            int quantity,
+            BigDecimal price,
+            String variantLabel) {}
 }
