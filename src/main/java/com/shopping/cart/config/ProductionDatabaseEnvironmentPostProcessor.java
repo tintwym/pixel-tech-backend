@@ -5,7 +5,8 @@ import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
- * Fails before the app starts when Cloud Run is missing required secrets.
+ * Fails before the app starts when a hosted runtime (Render / legacy Cloud Run)
+ * is missing required secrets.
  */
 public class ProductionDatabaseEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
@@ -13,13 +14,13 @@ public class ProductionDatabaseEnvironmentPostProcessor implements EnvironmentPo
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        if (!isCloudRun()) {
+        if (!isHostedRuntime()) {
             return;
         }
         String databaseUrl = environment.getProperty("DATABASE_URL");
         if (databaseUrl == null || databaseUrl.isBlank()) {
             throw new IllegalStateException(
-                    "DATABASE_URL is not set. In Google Cloud Run → service → Variables, "
+                    "DATABASE_URL is not set. In Render → service → Environment, "
                             + "add your Neon PostgreSQL URL "
                             + "(postgresql://user:pass@host/db?sslmode=require), then redeploy.");
         }
@@ -27,7 +28,7 @@ public class ProductionDatabaseEnvironmentPostProcessor implements EnvironmentPo
         String jwtSecret = environment.getProperty("JWT_SECRET");
         if (jwtSecret == null || jwtSecret.isBlank() || DEFAULT_JWT_SECRET.equals(jwtSecret)) {
             throw new IllegalStateException(
-                    "JWT_SECRET must be set to a unique value (min 32 characters) on Cloud Run. "
+                    "JWT_SECRET must be set to a unique value (min 32 characters) on Render. "
                             + "Do not deploy with the local development default.");
         }
         if (jwtSecret.length() < 32) {
@@ -35,8 +36,9 @@ public class ProductionDatabaseEnvironmentPostProcessor implements EnvironmentPo
         }
     }
 
-    private static boolean isCloudRun() {
-        return isSet(System.getenv("K_SERVICE"));
+    /** Render sets RENDER=true; Cloud Run set K_SERVICE (kept for any leftover revisions). */
+    private static boolean isHostedRuntime() {
+        return isSet(System.getenv("RENDER")) || isSet(System.getenv("K_SERVICE"));
     }
 
     private static boolean isSet(String value) {

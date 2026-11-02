@@ -1,6 +1,6 @@
 spring.application.name=pixel-tech-backend
 
-# Server (Cloud Run sets PORT; host port 8081 via Docker)
+# Server (Render/Docker set PORT; host port 8081 via Docker)
 server.port=${PORT:8080}
 
 # Database — Neon PostgreSQL (separate DB from Aura Fresh)

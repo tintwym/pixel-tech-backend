@@ -55,14 +55,11 @@ export $(grep -v '^#' .env | xargs)
 
 Default local port is still `8080` inside the process; Docker maps it to **8081**. For a bare `mvnw` run alongside Aura Fresh, set `PORT=8081`.
 
-## Google Cloud Run deploy
+## Render deploy
 
-```bash
-export GCP_PROJECT_ID=your-project-id
-./scripts/deploy-cloud-run.sh
-```
+Push this repo to GitHub, then create a Docker **Web Service** (or Blueprint via `render.yaml`).
 
-See **[DEPLOY.md](DEPLOY.md)** for env vars, IAM, and Stripe webhook setup.
+See **[DEPLOY.md](DEPLOY.md)** for env vars, Stripe webhook, and troubleshooting.
 
 ## Tests
 

@@ -18,12 +18,14 @@ public class CorsOrigins {
             @Value("${app.admin.base-url:}") String adminBaseUrl,
             Environment environment) {
         List<String> allowed = new ArrayList<>();
-        boolean cloudRun = System.getenv("K_SERVICE") != null && !System.getenv("K_SERVICE").isBlank();
+        boolean hosted =
+                (System.getenv("RENDER") != null && !System.getenv("RENDER").isBlank())
+                        || (System.getenv("K_SERVICE") != null && !System.getenv("K_SERVICE").isBlank());
         boolean localProfile = Arrays.stream(environment.getActiveProfiles())
                 .anyMatch(p -> p.equalsIgnoreCase("local") || p.equalsIgnoreCase("dev"));
 
-        // Only allow localhost origins outside Cloud Run (or when explicitly in local/dev).
-        if (!cloudRun || localProfile) {
+        // Only allow localhost origins outside hosted runtimes (or when explicitly in local/dev).
+        if (!hosted || localProfile) {
             allowed.add("http://localhost:3000");
             allowed.add("http://127.0.0.1:3000");
             allowed.add("http://localhost:3001");

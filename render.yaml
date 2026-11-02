@@ -1,0 +1,46 @@
+# Render Blueprint — https://dashboard.render.com/blueprints
+# Connect this repo (backend root or monorepo path) and create the service.
+# Set secret env vars in the Render dashboard (sync: false below).
+
+services:
+  - type: web
+    name: pixel-tech-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: STRIPE_API_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: APP_FRONTEND_BASE_URL
+        sync: false
+      - key: APP_CHECKOUT_SUCCESS_URL
+        sync: false
+      - key: APP_CHECKOUT_CANCEL_URL
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_FOLDER
+        value: pixel-tech/products
+      - key: ADMIN_SEED_USERNAME
+        sync: false
+      - key: ADMIN_SEED_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
+      - key: AI_REQUESTS_PER_MINUTE
+        value: "10"

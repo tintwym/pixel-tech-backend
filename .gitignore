@@ -46,4 +46,4 @@ src/main/resources/static/images/products/*
 node_modules/
 
 .env
-.env.cloudrun
+.env.render

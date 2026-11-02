@@ -1,6 +1,6 @@
-# Production deployment (Google Cloud Run)
+# Production deployment (Render)
 
-Use this after pushing this repo to GitHub. **Redeploy** when env vars change.
+Use this after pushing the backend repo to GitHub. **Redeploy** (or sync env) when variables change.
 
 ## Repository layout
 
@@ -8,42 +8,42 @@ Use this after pushing this repo to GitHub. **Redeploy** when env vars change.
 |------|------|
 | `LICENSE`, `README.md`, `DEPLOY.md` | Repo docs |
 | `Dockerfile`, `.dockerignore` | API Docker image |
-| `scripts/deploy-cloud-run.sh` | One-command deploy helper |
+| `render.yaml` | Render Blueprint (web service) |
 
-The Pixel Tech frontend lives in `../web/` (admin dashboard in `../admin/`) — set `APP_FRONTEND_BASE_URL` to your deployed frontend URL.
+The Pixel Tech frontend lives in `../web/` (admin in `../admin/`) — set `APP_FRONTEND_BASE_URL` to your deployed frontend URL.
 
-Database: **[Neon](https://neon.tech)** PostgreSQL (external — not hosted on Cloud Run).
+Database: **[Neon](https://neon.tech)** PostgreSQL (external — not hosted on Render).
 
 ## Prerequisites
 
-1. [Google Cloud](https://cloud.google.com) account (free tier covers small hobby traffic).
-2. Install [Google Cloud CLI](https://cloud.google.com/sdk/docs/install): `gcloud`
-3. Create or select a project:
+1. [Render](https://render.com) account  
+2. Backend repo on GitHub  
+3. Local `backend/.env` with Neon / Stripe / JWT / Cloudinary (for reference when filling the dashboard)
 
-```bash
-gcloud auth login
-gcloud config set project YOUR_PROJECT_ID
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
-```
+## Deploy API to Render
 
-## Deploy API to Cloud Run
+### Option A — Blueprint (`render.yaml`)
 
-From the **repo root** (`backend/`):
+1. Render Dashboard → **New** → **Blueprint**  
+2. Select the backend GitHub repo (root must contain `render.yaml` + `Dockerfile`)  
+3. Confirm service `pixel-tech-api`  
+4. Fill every `sync: false` env var in the dashboard (copy from your local `.env`)  
+5. Deploy
 
-```bash
-export GCP_PROJECT_ID=your-gcp-project-id
-export GCP_REGION=asia-southeast1   # or your preferred region
+### Option B — Manual Web Service
 
-./scripts/deploy-cloud-run.sh
-```
+1. **New** → **Web Service** → this repo  
+2. Runtime: **Docker**  
+3. Region: **Singapore** (or closest)  
+4. Instance: **Free** (spins down when idle) or **Starter** for always-on  
+5. Health check path: `/actuator/health`  
+6. Add env vars (table below) → **Create Web Service**
 
-The script builds the Docker image and deploys to Cloud Run using your local `.env` (auto-converted to `.env.cloudrun`).
+Copy the service URL, e.g. `https://pixel-tech-api.onrender.com`.
 
-Copy the service URL from the output (e.g. `https://shopping-cart-backend-860670068354.asia-southeast1.run.app`).
+## Environment variables (Render)
 
-## Environment variables (Cloud Run)
-
-**Cloud Console:** Cloud Run → your service → **Edit & deploy new revision** → **Variables & secrets**
+**Dashboard:** Service → **Environment**
 
 | Variable | Example / notes |
 |----------|-----------------|
@@ -52,48 +52,44 @@ Copy the service URL from the output (e.g. `https://shopping-cart-backend-860670
 | `STRIPE_API_KEY` | `sk_test_…` or live key |
 | `STRIPE_WEBHOOK_SECRET` | From Stripe → Webhooks (`whsec_…`) |
 | `APP_FRONTEND_BASE_URL` | `https://your-app.vercel.app` |
+| `APP_CHECKOUT_SUCCESS_URL` | `https://your-app.vercel.app/payment/success?session_id={CHECKOUT_SESSION_ID}` |
+| `APP_CHECKOUT_CANCEL_URL` | `https://your-app.vercel.app/cart` |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
 | `CLOUDINARY_API_KEY` | API key |
 | `CLOUDINARY_API_SECRET` | API secret |
+| `CLOUDINARY_FOLDER` | `pixel-tech/products` |
 | `ADMIN_SEED_USERNAME` | Optional first admin |
 | `ADMIN_SEED_PASSWORD` | Optional admin password |
+| `GEMINI_API_KEY` | Optional — AI features |
+| `GEMINI_MODEL` | Optional |
 
-Cloud Run sets `PORT` automatically — do not hardcode it.
-
-**Deploy with env vars from a local file** (not committed):
-
-The deploy script auto-generates `.env.cloudrun` from `.env`. Format if you create it manually:
-
-```yaml
-DATABASE_URL: postgresql://user:pass@host/db?sslmode=require
-JWT_SECRET: your-secret
-STRIPE_API_KEY: sk_test_xxx
-APP_FRONTEND_BASE_URL: https://your-app.vercel.app
-```
+Render sets `PORT` automatically — do not hardcode it (`server.port=${PORT:8080}`).
 
 ## Frontend (Pixel Tech)
 
-After deploy, point the frontend at this API:
+After deploy, point the frontends at this API:
 
-1. On **Vercel**, set `API_PROXY_TARGET` to the Cloud Run URL (**no** `/api` suffix)
-2. Set `APP_FRONTEND_BASE_URL` on Cloud Run to your Vercel origin (e.g. `https://pixel-tech.vercel.app`)
-3. Redeploy Cloud Run if you changed env vars after the first deploy
+1. On **Vercel** (web + admin), set `API_PROXY_TARGET` to the Render URL (**no** `/api` suffix, no trailing slash)  
+2. Set `APP_FRONTEND_BASE_URL` on Render to your Vercel origin (e.g. `https://pixel-tech-mm.vercel.app`)  
+3. Redeploy / restart the Render service after env changes  
 
 ## Stripe webhook
 
 1. Stripe Dashboard → Developers → Webhooks → Add endpoint  
-2. URL: `https://shopping-cart-backend-860670068354.asia-southeast1.run.app/api/stripe/webhook`  
+2. URL: `https://YOUR-SERVICE.onrender.com/api/stripe/webhook`  
 3. Event: `checkout.session.completed`  
-4. Copy signing secret → `STRIPE_WEBHOOK_SECRET` on Cloud Run → deploy new revision  
+4. Copy signing secret → `STRIPE_WEBHOOK_SECRET` on Render → save (triggers redeploy)  
 
 ## Verify API
 
 ```bash
-curl https://shopping-cart-backend-860670068354.asia-southeast1.run.app/actuator/health
-curl https://shopping-cart-backend-860670068354.asia-southeast1.run.app/api/products/index
+curl https://YOUR-SERVICE.onrender.com/actuator/health
+curl https://YOUR-SERVICE.onrender.com/api/products/index
 ```
 
 Expect JSON from `/api/products/index`, not HTML.
+
+> **Free plan:** the service sleeps after idle. First request after sleep can take 30–60s.
 
 ## Admin catalog
 
@@ -103,40 +99,14 @@ Expect JSON from `/api/products/index`, not HTML.
    UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'Admin') WHERE username = 'youruser';
    ```
 
-2. Sign in on the app → **Me** → **Manage products**
+2. Sign in on the admin app → manage products  
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---------|-----|
-| CORS error | `APP_FRONTEND_BASE_URL` must match your Vercel URL |
-| `DATABASE_URL is not set` on startup | Add `DATABASE_URL` in Cloud Run variables |
-| 403 on API URL | Deploy with `--allow-unauthenticated` |
-| Cold start slow | Normal on free tier after idle; retry after a few seconds |
+| CORS error | `APP_FRONTEND_BASE_URL` must match your Vercel origin exactly |
+| `DATABASE_URL is not set` on startup | Add `DATABASE_URL` in Render → Environment |
+| Cold start slow / 502 on first hit | Free tier sleep — wait and retry, or upgrade to Starter |
 | Build fails | Run `docker build .` locally; ensure repo root has `Dockerfile` |
-| Container failed to start / PORT 8080 timeout | Usually **missing env vars** — check logs; ensure `DATABASE_URL` is set (see below) |
-| `PERMISSION_DENIED` / default service account missing IAM | See [Fix Cloud Build IAM](#fix-cloud-build-iam) below |
-
-### Fix Cloud Build IAM
-
-If deploy fails with `PERMISSION_DENIED` and mentions  
-`860670068354-compute@developer.gserviceaccount.com`, grant roles to the **default Compute Engine service account** (replace project ID/number if yours differ):
-
-```bash
-export GCP_PROJECT_ID=shopping-cart-501808
-export GCP_PROJECT_NUMBER=860670068354
-SA="${GCP_PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
-
-for ROLE in \
-  roles/cloudbuild.builds.builder \
-  roles/storage.objectViewer \
-  roles/artifactregistry.writer \
-  roles/run.admin \
-  roles/iam.serviceAccountUser; do
-  gcloud projects add-iam-policy-binding "$GCP_PROJECT_ID" \
-    --member="serviceAccount:${SA}" \
-    --role="$ROLE"
-done
-```
-
-Wait ~1 minute, then run `./scripts/deploy-cloud-run.sh` again.
+| Container failed to start | Check Render logs; usually missing `DATABASE_URL` or `JWT_SECRET` |

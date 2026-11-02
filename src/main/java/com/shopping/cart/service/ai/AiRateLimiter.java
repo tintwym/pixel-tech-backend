@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Fixed one-minute window per client. In-memory, so limits are per Cloud Run instance —
+ * Fixed one-minute window per client. In-memory, so limits are per Render instance —
  * good enough to stop accidental loops and casual abuse of the paid model.
  */
 @Component
