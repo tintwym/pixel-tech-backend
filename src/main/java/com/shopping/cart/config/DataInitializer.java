@@ -89,6 +89,7 @@ public class DataInitializer implements ApplicationRunner {
     private static String inferBrand(String name) {
         String n = name == null ? "" : name.toLowerCase();
         if (n.contains("iphone") || n.contains("ipad") || n.contains("macbook")
+                || n.contains("imac") || n.contains("mac mini") || n.contains("macmini")
                 || n.contains("airpods") || n.contains("apple watch")) {
             return "Apple";
         }
@@ -102,6 +103,9 @@ public class DataInitializer implements ApplicationRunner {
         String n = name == null ? "" : name.toLowerCase();
         if (n.contains("iphone") || n.contains("galaxy s")) return "Smartphones";
         if (n.contains("ipad") || n.contains("tab ")) return "Tablets";
+        if (n.contains("imac") || n.contains("mac mini") || n.contains("macmini")) {
+            return "Desktops / PCs";
+        }
         if (n.contains("macbook") || n.contains("rog") || n.contains("laptop")) return "Laptops";
         if (n.contains("airpods") || n.contains("wh-1000") || n.contains("headphone")) {
             return "Audio / Headphones";
@@ -240,7 +244,7 @@ public class DataInitializer implements ApplicationRunner {
                 "Samsung", "Smartphones", "4599000.00", 16,
                 "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=600&q=80");
         seedProduct("MacBook Air",
-                "Ultra-portable Liquid Retina laptop with all-day battery. Choose 13\" or 15\", memory, and storage. Finishes: Midnight, Starlight, Silver, and Sky Blue.",
+                "M5 Liquid Retina laptop with silent fanless design and all-day battery. Choose 13\" or 15\", memory, and storage. Finishes: Midnight, Starlight, Silver, and Sky Blue.",
                 "Apple", "Laptops", "4299000.00", 14,
                 List.of(
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793248210/pixel-tech/products/macbook-air-size-unselect-202601-gallery-1-710da233.webp",
@@ -269,7 +273,7 @@ public class DataInitializer implements ApplicationRunner {
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793248205/pixel-tech/products/macbook-air-finish-select-202601-13inch-starlight-av3-ad820074.webp"
                 ));
         seedProduct("MacBook Pro PROLED",
-                "Next-gen MacBook Pro with PROLED display, pro ports, and sustained performance for code, video, and 3D. Choose 14\" or 16\", memory, and storage. Finishes: Space Black and Silver.",
+                "Most advanced MacBook Pro with PROLED XDR (Tandem OLED) touch display, M5 Pro or M5 Max, and up to 24-hour battery. Choose 14.2\" or 16.3\", memory, and storage. Finishes: Space Black and Silver.",
                 "Apple", "Laptops", "8999000.00", 10,
                 List.of(
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259216/pixel-tech/products/macbook-pro-proled-size-unselect-202610-gallery-1-4d56699f.jpg",
@@ -294,6 +298,32 @@ public class DataInitializer implements ApplicationRunner {
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259194/pixel-tech/products/macbook-pro-proled-finish-select-202610-14inch-silver-av3-774ecce7.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259195/pixel-tech/products/macbook-pro-proled-finish-select-202610-14inch-silver-av4-81f04144.jpg"
                 ));
+        seedProduct("iMac",
+                "24\" 4.5K Retina all-in-one with M6, MagSafe, Center Stage camera, Wi-Fi 7, and matching Magic Keyboard + Magic Mouse. Colors: Blue, Purple, Pink, Orange, Yellow, Green, and Silver.",
+                "Apple", "Desktops / PCs", "5499000.00", 12,
+                List.of(
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260817/pixel-tech/products/imac-color-unselect-202610-gallery-1-b7851aa6.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260818/pixel-tech/products/imac-color-unselect-202610-gallery-2-d5fe8ae7.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260820/pixel-tech/products/imac-color-unselect-202610-gallery-3-e063398c.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260821/pixel-tech/products/imac-color-unselect-202610-gallery-4-31e8eb56.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260823/pixel-tech/products/imac-color-unselect-202610-gallery-5-ad42f01d.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260805/pixel-tech/products/imac-color-select-202610-blue-585bb601.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260812/pixel-tech/products/imac-color-select-202610-purple-97972890.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260810/pixel-tech/products/imac-color-select-202610-pink-429873cb.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260809/pixel-tech/products/imac-color-select-202610-orange-3ab41c5e.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260815/pixel-tech/products/imac-color-select-202610-yellow-fe9c0acf.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260807/pixel-tech/products/imac-color-select-202610-green-8a400acb.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260813/pixel-tech/products/imac-color-select-202610-silver-7ca1a1fd.jpg"
+                ));
+        seedProduct("Mac mini",
+                "Ultracompact 5×5\" desktop with M6 or M5 Pro, front USB-C + headphone jack, Thunderbolt, HDMI, 2.5Gb Ethernet, Wi-Fi 7, and Bluetooth 6. Finish: Silver.",
+                "Apple", "Desktops / PCs", "2899000.00", 18,
+                List.of(
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260962/pixel-tech/products/mac-mini-chip-unselect-202608-gallery-1-4daec40b.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260963/pixel-tech/products/mac-mini-chip-unselect-202608-gallery-2-ca8dce7b.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260965/pixel-tech/products/mac-mini-chip-unselect-202608-gallery-3-3231b5ad.jpg",
+                        "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260967/pixel-tech/products/mac-mini-chip-unselect-202608-gallery-4-5a3fbf2d.jpg"
+                ));
         seedProduct("MacBook Neo",
                 "Colorful everyday MacBook with vivid finishes (Blush, Citrus, Indigo, Silver). Configure memory and storage to match your workflow.",
                 "Apple", "Laptops", "3599000.00", 16,
@@ -317,7 +347,7 @@ public class DataInitializer implements ApplicationRunner {
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793248224/pixel-tech/products/macbook-neo-color-select-202603-silver-av3-e4b49fa4.webp"
                 ));
         seedProduct("MacBook Pro",
-                "Liquid Retina XDR, pro ports, and sustained performance for code, video, and 3D. Choose 14\" or 16\", memory, and storage. Finishes: Space Black and Silver.",
+                "Liquid Retina XDR with M6, M5 Pro, or M5 Max for code, video, and 3D. Choose 14.2\" or 16.2\", memory, and storage. Finishes: Space Black and Silver.",
                 "Apple", "Laptops", "7899000.00", 8,
                 List.of(
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793258653/pixel-tech/products/pixel-tech/products/macbook-pro-size-unselect-202610-gallery-1-86b32bdd.jpg",
@@ -454,30 +484,49 @@ public class DataInitializer implements ApplicationRunner {
             String price,
             int stock,
             List<String> imageUrls) {
-        runInTransaction(() -> {
-            var existing = productRepository.findByNameIgnoreCase(name);
-            if (existing.isPresent()) {
-                Product product = existing.get();
-                product.setDescription(description);
-                product.setBrand(brand);
-                product.setCategory(category);
-                product.setPrice(new BigDecimal(price));
-                product.setStock(stock);
-                product.setDeleted(false);
-                replaceImages(product, imageUrls);
-                productRepository.saveAndFlush(product);
-                log.info("Seeded product (update): {} [{} / {}] with {} image(s)",
+        try {
+            runInTransaction(() -> {
+                var existing = productRepository.findByNameIgnoreCase(name);
+                if (existing.isPresent()) {
+                    Product product = existing.get();
+                    product.setDescription(description);
+                    product.setBrand(brand);
+                    product.setCategory(category);
+                    product.setPrice(new BigDecimal(price));
+                    product.setStock(stock);
+                    product.setDeleted(false);
+                    boolean imagesChanged = replaceImagesIfNeeded(product, imageUrls);
+                    productRepository.save(product);
+                    log.info("Seeded product (update{}): {} [{} / {}] with {} image(s)",
+                            imagesChanged ? "+images" : "", name, brand, category, imageUrls.size());
+                    return;
+                }
+                saveProduct(name, description, brand, category, price, stock, imageUrls);
+                log.info("Seeded product (create): {} [{} / {}] with {} image(s)",
                         name, brand, category, imageUrls.size());
-                return;
-            }
-            saveProduct(name, description, brand, category, price, stock, imageUrls);
-            log.info("Seeded product (create): {} [{} / {}] with {} image(s)",
-                    name, brand, category, imageUrls.size());
-        });
+            });
+        } catch (Exception e) {
+            log.error("Failed to seed product {}: {}", name, e.toString());
+        }
     }
 
-    private void replaceImages(Product product, List<String> imageUrls) {
+    /** Returns true when gallery rows were rewritten (skip no-op deletes on Neon). */
+    private boolean replaceImagesIfNeeded(Product product, List<String> imageUrls) {
         List<ProductImage> images = product.getImages();
+        if (images != null && images.size() == imageUrls.size()) {
+            boolean same = true;
+            for (int i = 0; i < imageUrls.size(); i++) {
+                ProductImage current = images.get(i);
+                String path = current == null ? null : current.getPath();
+                if (path == null || !path.equals(imageUrls.get(i))) {
+                    same = false;
+                    break;
+                }
+            }
+            if (same) {
+                return false;
+            }
+        }
         if (images == null) {
             images = new ArrayList<>();
             product.setImages(images);
@@ -490,6 +539,7 @@ public class DataInitializer implements ApplicationRunner {
             image.setProduct(product);
             images.add(image);
         }
+        return true;
     }
 
     private void saveProduct(
