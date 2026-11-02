@@ -59,11 +59,50 @@ public class DataInitializer implements ApplicationRunner {
         // (important with Neon pooler + long startup transactions).
         runInTransaction(() -> seedRole("User"));
         runInTransaction(() -> seedRole("Admin"));
+        renameCatalogTitles();
         seedSampleProducts();
         backfillMissingBrandCategory();
         runInTransaction(this::seedAdminUser);
         runInTransaction(this::seedPromoCodes);
         log.info("DataInitializer finished");
+    }
+
+    /** One-time renames so existing Neon rows pick up chip details in the catalog title. */
+    private void renameCatalogTitles() {
+        renameProduct("MacBook Air", "MacBook Air M5");
+        renameProduct("MacBook Neo", "MacBook Neo M4");
+        renameProduct("MacBook Pro PROLED", "MacBook Pro PROLED M5");
+        renameProduct("MacBook Pro", "MacBook Pro M6");
+        renameProduct("iMac", "iMac M6");
+        renameProduct("Mac mini", "Mac mini M6");
+        renameProduct("iPad Pro", "iPad Pro M5");
+        renameProduct("iPad Air", "iPad Air M2");
+        renameProduct("iPad", "iPad A16");
+    }
+
+    private void renameProduct(String from, String to) {
+        runInTransaction(() -> {
+            var existing = productRepository.findByNameIgnoreCase(from);
+            if (existing.isEmpty()) {
+                return;
+            }
+            Product product = existing.get();
+            var dest = productRepository.findByNameIgnoreCase(to);
+            if (dest.isPresent() && !dest.get().getId().equals(product.getId())) {
+                // Prefer the already-renamed row; soft-delete the legacy title.
+                if (!product.isDeleted()) {
+                    product.setDeleted(true);
+                    productRepository.save(product);
+                    log.info("Retired duplicate legacy title {} (kept {})", from, to);
+                }
+                return;
+            }
+            if (!to.equals(product.getName())) {
+                product.setName(to);
+                productRepository.save(product);
+                log.info("Renamed catalog product {} → {}", from, to);
+            }
+        });
     }
 
     private void seedPromoCodes() {
@@ -270,7 +309,7 @@ public class DataInitializer implements ApplicationRunner {
                 "Dynamic AMOLED 2X, S Pen, and pro-grade zoom cameras. Android flagship with DeX and long battery life.",
                 "Samsung", "Smartphones", "4599000.00", 16,
                 "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=600&q=80");
-        seedProduct("MacBook Air",
+        seedProduct("MacBook Air M5",
                 "M5 Liquid Retina laptop with silent fanless design and all-day battery. Choose 13\" or 15\", memory, and storage. Finishes: Midnight, Starlight, Silver, and Sky Blue.",
                 "Apple", "Laptops", "4299000.00", 14,
                 List.of(
@@ -299,7 +338,7 @@ public class DataInitializer implements ApplicationRunner {
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793248204/pixel-tech/products/macbook-air-finish-select-202601-13inch-starlight-av2-a195cdf1.webp",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793248205/pixel-tech/products/macbook-air-finish-select-202601-13inch-starlight-av3-ad820074.webp"
                 ));
-        seedProduct("MacBook Pro PROLED",
+        seedProduct("MacBook Pro PROLED M5",
                 "Most advanced MacBook Pro with PROLED XDR (Tandem OLED) touch display, M5 Pro or M5 Max, and up to 24-hour battery. Choose 14.2\" or 16.3\", memory, and storage. Finishes: Space Black and Silver.",
                 "Apple", "Laptops", "8999000.00", 10,
                 List.of(
@@ -322,7 +361,7 @@ public class DataInitializer implements ApplicationRunner {
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259189/pixel-tech/products/macbook-pro-proled-finish-select-202610-14inch-silver-85241a17.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793259190/pixel-tech/products/macbook-pro-proled-finish-select-202610-14inch-silver-av1-b2bb4b3f.jpg"
                 ));
-        seedProduct("iMac",
+        seedProduct("iMac M6",
                 "24\" 4.5K Retina all-in-one with M6, MagSafe, Center Stage camera, Wi-Fi 7, and matching Magic Keyboard + Magic Mouse. Colors: Blue, Purple, Pink, Orange, Yellow, Green, and Silver.",
                 "Apple", "Desktops / PCs", "5499000.00", 12,
                 List.of(
@@ -339,7 +378,7 @@ public class DataInitializer implements ApplicationRunner {
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260807/pixel-tech/products/imac-color-select-202610-green-8a400acb.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260813/pixel-tech/products/imac-color-select-202610-silver-7ca1a1fd.jpg"
                 ));
-        seedProduct("Mac mini",
+        seedProduct("Mac mini M6",
                 "Ultracompact 5×5\" desktop with M6 or M5 Pro, front USB-C + headphone jack, Thunderbolt, HDMI, 2.5Gb Ethernet, Wi-Fi 7, and Bluetooth 6. Finish: Silver.",
                 "Apple", "Desktops / PCs", "2899000.00", 18,
                 List.of(
@@ -348,8 +387,8 @@ public class DataInitializer implements ApplicationRunner {
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260965/pixel-tech/products/mac-mini-chip-unselect-202608-gallery-3-3231b5ad.jpg",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793260967/pixel-tech/products/mac-mini-chip-unselect-202608-gallery-4-5a3fbf2d.jpg"
                 ));
-        seedProduct("MacBook Neo",
-                "Colorful everyday MacBook with vivid finishes (Blush, Citrus, Indigo, Silver). Configure memory and storage to match your workflow.",
+        seedProduct("MacBook Neo M4",
+                "M4 colorful everyday MacBook with vivid finishes (Blush, Citrus, Indigo, Silver). Configure memory and storage to match your workflow.",
                 "Apple", "Laptops", "3599000.00", 16,
                 List.of(
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793248225/pixel-tech/products/macbook-neo-color-unselect-202603-gallery-1-c2291527.webp",
@@ -370,7 +409,7 @@ public class DataInitializer implements ApplicationRunner {
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793248224/pixel-tech/products/macbook-neo-color-select-202603-silver-av2-6143999c.webp",
                         "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793248224/pixel-tech/products/macbook-neo-color-select-202603-silver-av3-e4b49fa4.webp"
                 ));
-        seedProduct("MacBook Pro",
+        seedProduct("MacBook Pro M6",
                 "Liquid Retina XDR with M6, M5 Pro, or M5 Max for code, video, and 3D. Choose 14.2\" or 16.2\", memory, and storage. Finishes: Space Black and Silver.",
                 "Apple", "Laptops", "7899000.00", 8,
                 List.of(
@@ -411,15 +450,16 @@ public class DataInitializer implements ApplicationRunner {
                 "Thinner aluminum case, brighter Always-On Retina, sleep apnea notifications, and all-day battery.",
                 "Apple", "Smartwatches / Wearables", "1599000.00", 22,
                 "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?auto=format&fit=crop&w=600&q=80");
-        seedProduct("iPad Pro",
+        seedProduct("iPad Pro M5",
                 "Ultra Retina XDR (tandem OLED) with M5, Apple Pencil Pro support, and an ultrasleek design. Choose 11\" or 13\", storage, and finish. Finishes: Silver and Space Black.",
                 "Apple", "Tablets", "3899000.00", 14,
                 List.of(
+                // Card hero: size-select “Pro” wallpaper first for clear identity on the shelf.
+                "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589271/pixel-tech/products/ipad-pro-size-select-202405-gallery-1-35bfe670.jpg",
+                "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589272/pixel-tech/products/ipad-pro-size-select-202405-gallery-2-ac5f7d0b.jpg",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589269/pixel-tech/products/ipad-pro-finish-unselect-202405-gallery-1-a26c19e5.jpg",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589270/pixel-tech/products/ipad-pro-finish-unselect-202405-gallery-2-58eb1f8f.jpg",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589271/pixel-tech/products/ipad-pro-finish-unselect-202405-gallery-3-85aa04a3.jpg",
-                "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589271/pixel-tech/products/ipad-pro-size-select-202405-gallery-1-35bfe670.jpg",
-                "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589272/pixel-tech/products/ipad-pro-size-select-202405-gallery-2-ac5f7d0b.jpg",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589351/pixel-tech/products/ipad-pro-finish-select-202405-11inch-spaceblack-881dea03.jpg",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589324/pixel-tech/products/ipad-pro-finish-select-202405-11inch-spaceblack-av1-1055ba7b.jpg",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589273/pixel-tech/products/ipad-pro-finish-select-202405-11inch-silver-541e6e89.jpg",
@@ -433,7 +473,7 @@ public class DataInitializer implements ApplicationRunner {
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589277/pixel-tech/products/ipad-pro-finish-select-202405-13inch-silver-av1-a177ac23.jpg",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589278/pixel-tech/products/ipad-pro-finish-select-202405-13inch-silver-av2-a244b6f6.jpg"
                 ));
-        seedProduct("iPad Air",
+        seedProduct("iPad Air M2",
                 "Liquid Retina with M2, Landscape 12MP Ultra Wide front camera, Apple Pencil Pro support, and an all-day battery. Choose 11\" or 13\", storage, and finish. Finishes: Blue, Purple, Starlight, and Space Gray.",
                 "Apple", "Tablets", "2499000.00", 16,
                 List.of(
@@ -467,7 +507,7 @@ public class DataInitializer implements ApplicationRunner {
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589268/pixel-tech/products/ipad-air-finish-select-202405-13inch-starlight-av1-826efec1.webp",
                 "https://res.cloudinary.com/diqkh6yqr/image/upload/v1793589269/pixel-tech/products/ipad-air-finish-select-202405-13inch-starlight-av2-a41306cd.webp"
                 ));
-        seedProduct("iPad",
+        seedProduct("iPad A16",
                 "11th-generation iPad with the A16 chip, 11\" Liquid Retina display, Landscape 12MP Ultra Wide front camera, and USB-C. Choose storage and finish. Finishes: Blue, Pink, Yellow, and Silver.",
                 "Apple", "Tablets", "1499000.00", 20,
                 List.of(
